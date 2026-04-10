@@ -1,0 +1,32 @@
+<!-- Login -->
+<app-login-view *ngIf="!state.isAuthenticated()"></app-login-view>
+
+<!-- App principal -->
+<div *ngIf="state.isAuthenticated()" class="app-shell">
+  <!-- Sidebar -->
+  <app-sidebar></app-sidebar>
+
+  <!-- Contenido principal -->
+  <div class="main-area">
+    <app-topbar></app-topbar>
+
+    <div class="content-area">
+      <app-dashboard-view    *ngIf="state.currentView() === 'dashboard'"></app-dashboard-view>
+      <app-seguimiento-view  *ngIf="state.currentView() === 'seguimiento'"></app-seguimiento-view>
+      <app-chat-view         *ngIf="state.currentView() === 'chat'"></app-chat-view>
+      <app-pagos-view        *ngIf="state.currentView() === 'pagos'"></app-pagos-view>
+      <app-repuestos-view    *ngIf="state.currentView() === 'repuestos'"></app-repuestos-view>
+      <app-clientes-view     *ngIf="state.currentView() === 'clientes'"></app-clientes-view>
+      <app-historial-view    *ngIf="state.currentView() === 'historial'"></app-historial-view>
+      <app-notificaciones-view *ngIf="state.currentView() === 'notificaciones'"></app-notificaciones-view>
+      <app-personal-view     *ngIf="state.currentView() === 'personal'"></app-personal-view>
+      <app-perfil-taller-view *ngIf="state.currentView() === 'perfil'"></app-perfil-taller-view>
+    </div>
+  </div>
+
+  <!-- Widget IA flotante -->
+  <app-ia-widget></app-ia-widget>
+
+  <!-- Modal de calificación -->
+  <app-calificacion-modal *ngIf="state.showCalificacionModal() && state.servicioParaCalificar()"></app-calificacion-modal>
+</div>

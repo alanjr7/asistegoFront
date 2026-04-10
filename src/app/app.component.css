@@ -1,0 +1,21 @@
+.app-shell {
+  height: 100vh;
+  display: flex;
+  background: #f9fafb;
+  overflow: hidden;
+}
+
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.content-area {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}

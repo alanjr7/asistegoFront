@@ -1,0 +1,204 @@
+<div class="dashboard">
+  <!-- Mapa principal -->
+  <div class="map-section" [class.expanded]="mapaExpandido()">
+    <!-- Solicitud en curso -->
+    <div class="solicitud-en-curso card">
+      <div class="sec-left">
+        <div class="pulse-dot"></div>
+        <span class="text-sm text-gray-700">Solicitud en curso:</span>
+        <span class="font-medium text-gray-900">{{ solicitudEnCurso.cliente.nombre }}</span>
+      </div>
+      <div class="sec-right">
+        <span class="text-sm text-gray-600">Mecánico asignado:</span>
+        <img [src]="personalPrimero.foto" [alt]="personalPrimero.nombre" class="avatar-sm" />
+        <span class="text-sm text-gray-900">{{ personalPrimero.nombre }}</span>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="card p-4">
+        <p class="text-sm text-gray-500">Solicitudes Activas</p>
+        <p class="stat-value">{{ solicitudesPendientes.length }}</p>
+      </div>
+      <div class="card p-4">
+        <p class="text-sm text-gray-500">Ingresos Hoy</p>
+        <p class="stat-value">Bs. 1,245</p>
+      </div>
+      <div class="card p-4">
+        <p class="text-sm text-gray-500">Servicios Completados</p>
+        <p class="stat-value">8</p>
+      </div>
+      <div class="card p-4">
+        <p class="text-sm text-gray-500">Calificación</p>
+        <p class="stat-value">4.8 ⭐</p>
+      </div>
+    </div>
+
+    <!-- Mapa -->
+    <div class="map-card card" [class.expanded]="mapaExpandido()">
+      <div class="map-inner">
+        <div id="dashboard-map" class="leaflet-map"></div>
+
+        <button class="btn btn-outline map-btn-left">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:0.5rem">
+            <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+          </svg>
+          Buscar en el área
+        </button>
+
+        <button class="btn btn-outline map-btn-right btn-icon" (click)="toggleMapa()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+          </svg>
+        </button>
+
+        <!-- Control distancia -->
+        <div class="distance-card card">
+          <span class="text-sm text-gray-700" style="white-space:nowrap">Radio de búsqueda:</span>
+          <button class="btn btn-outline btn-icon" (click)="decrement()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <input type="range" class="slider" [min]="1" [max]="50" [value]="distanciaMaxima()" (input)="setDistancia(+$any($event.target).value)" style="flex:1" />
+          <button class="btn btn-outline btn-icon" (click)="increment()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <span class="text-sm font-medium text-gray-900" style="min-width:3.5rem;text-align:right">{{ distanciaMaxima() }} km</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel solicitudes -->
+  <div class="solicitudes-panel">
+    <h3 class="text-gray-900" style="margin-bottom:1rem">Solicitudes Cercanas</h3>
+
+    <div class="solicitudes-list">
+      <div
+        *ngFor="let s of solicitudesPendientes"
+        class="card solicitud-card"
+        [class.grua-card]="s.tipo === 'grua'"
+        (click)="selectSolicitud(s)"
+      >
+        <div class="solicitud-header">
+          <div style="display:flex;align-items:center;gap:0.5rem">
+            <div class="sol-avatar bg-gradient-to-br-blue-green">{{ s.cliente.nombre[0] }}</div>
+            <div>
+              <p class="font-medium text-gray-900">{{ s.cliente.nombre }}</p>
+              <p class="text-xs text-gray-500">{{ s.distancia }} km</p>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:0.25rem;align-items:flex-end">
+            <span class="badge badge-outline" style="color:#2563eb;border-color:#2563eb">{{ s.vehiculo.marca }}</span>
+            <span *ngIf="s.tipo === 'grua'" class="badge badge-red">GRÚA</span>
+          </div>
+        </div>
+        <p class="text-sm text-gray-700" style="margin-bottom:0.5rem">{{ s.descripcion }}</p>
+        <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.75rem;color:#6b7280">
+          <span *ngIf="s.imagenes">📷 {{ s.imagenes.length }}</span>
+          <span *ngIf="s.audio">🎙️ Audio</span>
+          <span *ngIf="s.requiereRepuestos" class="badge badge-secondary">Requiere repuestos</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal solicitud -->
+<div *ngIf="selectedSolicitud()" class="modal-overlay" (click)="closeModal()">
+  <div class="modal-card card" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <!-- Header -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:0.75rem">
+          <img [src]="selectedSolicitud()!.cliente.foto" [alt]="selectedSolicitud()!.cliente.nombre" class="avatar-md" />
+          <div>
+            <h3>{{ selectedSolicitud()!.cliente.nombre }}</h3>
+            <p class="text-sm text-gray-500">{{ selectedSolicitud()!.distancia }} km de distancia</p>
+          </div>
+        </div>
+        <span class="badge btn-primary">{{ selectedSolicitud()!.estado }}</span>
+      </div>
+
+      <hr class="separator" />
+
+      <!-- Vehículo -->
+      <div>
+        <h4 class="text-sm text-gray-500" style="margin-bottom:0.5rem">Vehículo</h4>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v5"/><circle cx="15" cy="17" r="2"/><circle cx="7" cy="17" r="2"/><path d="M14 9h4l1.5 5"/></svg>
+          <span class="text-gray-900">{{ selectedSolicitud()!.vehiculo.marca }} {{ selectedSolicitud()!.vehiculo.modelo }} {{ selectedSolicitud()!.vehiculo.anio }}</span>
+          <span class="badge badge-outline">{{ selectedSolicitud()!.vehiculo.placa }}</span>
+        </div>
+      </div>
+
+      <!-- Problema -->
+      <div>
+        <h4 class="text-sm text-gray-500" style="margin-bottom:0.5rem">Descripción del problema</h4>
+        <p class="text-gray-900">{{ selectedSolicitud()!.descripcion }}</p>
+      </div>
+
+      <!-- Imágenes -->
+      <div *ngIf="selectedSolicitud()!.imagenes">
+        <h4 class="text-sm text-gray-500" style="margin-bottom:0.5rem">Imágenes enviadas</h4>
+        <div class="img-grid">
+          <img *ngFor="let img of selectedSolicitud()!.imagenes" [src]="img" alt="Imagen" class="img-preview" />
+        </div>
+      </div>
+
+      <!-- Audio -->
+      <div *ngIf="selectedSolicitud()!.audio" class="audio-block">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4b5563" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        <div style="flex:1">
+          <p class="text-sm text-gray-700">Mensaje de voz</p>
+          <p class="text-xs text-gray-500">0:45</p>
+        </div>
+        <button class="btn btn-outline btn-sm">Reproducir</button>
+      </div>
+
+      <!-- Análisis IA -->
+      <div *ngIf="selectedSolicitud()!.analisisIA">
+        <button class="btn btn-outline" style="width:100%" (click)="toggleAnalisisIA()">
+          ✨ {{ showAnalisisIA() ? 'Ocultar' : 'Ver' }} Análisis con IA
+        </button>
+        <div *ngIf="showAnalisisIA()" class="ia-panel">
+          <div *ngIf="selectedSolicitud()!.analisisIA!.tipoProblema">
+            <p class="text-xs text-gray-500">Tipo de problema</p>
+            <p class="text-sm text-gray-900">{{ selectedSolicitud()!.analisisIA!.tipoProblema }}</p>
+          </div>
+          <div *ngIf="selectedSolicitud()!.analisisIA!.piezasDetectadas">
+            <p class="text-xs text-gray-500">Piezas detectadas</p>
+            <div style="display:flex;flex-wrap:wrap;gap:0.25rem">
+              <span *ngFor="let p of selectedSolicitud()!.analisisIA!.piezasDetectadas" class="badge badge-secondary">{{ p }}</span>
+            </div>
+          </div>
+          <div *ngIf="selectedSolicitud()!.analisisIA!.recomendaciones">
+            <p class="text-xs text-gray-500">Recomendaciones</p>
+            <ul style="list-style:none;padding:0">
+              <li *ngFor="let r of selectedSolicitud()!.analisisIA!.recomendaciones" style="display:flex;align-items:flex-start;gap:0.5rem;margin-bottom:0.25rem">
+                <span style="color:#2563eb">•</span>
+                <span class="text-sm text-gray-900">{{ r }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <hr class="separator" />
+
+      <!-- Acciones -->
+      <div style="display:flex;gap:0.75rem">
+        <button class="btn btn-outline" style="flex:1" (click)="reject()">
+          ✕ Rechazar
+        </button>
+        <button class="btn btn-primary" style="flex:1" (click)="accept()">
+          ✓ Aceptar Solicitud
+        </button>
+      </div>
+
+      <button class="btn btn-ghost" style="width:100%">
+        📞 Llamar a {{ selectedSolicitud()!.cliente.nombre }}
+      </button>
+    </div>
+  </div>
+</div>
