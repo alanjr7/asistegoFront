@@ -1,33 +1,114 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject, effect } from '@angular/core';
 import { Solicitud, Notificacion, Calificacion } from '../models/types.model';
 import { MockDataService } from './mock-data.service';
+import { AuthService } from './auth.service';
+import { NotificacionesService } from './notificaciones.service';
+import { catchError, of } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AppStateService {
+  private authService = inject(AuthService);
+  private notificacionesService = inject(NotificacionesService);
   isAuthenticated = signal(false);
-  currentView = signal('dashboard');
+  currentView = signal('login');
   solicitudActiva = signal<Solicitud | null>(null);
+  solicitudPendienteSeleccionada = signal<Solicitud | null>(null);
   notificaciones = signal<Notificacion[]>([]);
   showCalificacionModal = signal(false);
   servicioParaCalificar = signal<Solicitud | null>(null);
+  loginError = signal<string | null>(null);
+  registerError = signal<string | null>(null);
 
+  // Computed que usa el servicio de notificaciones
   notificacionesNoLeidas = computed(() =>
-    this.notificaciones().filter(n => !n.leida).length
+    this.notificacionesService.noLeidasCount()
   );
 
   constructor(private mockData: MockDataService) {
-    this.notificaciones.set([...mockData.notificaciones]);
+    // Inicializar con datos del mock si no hay conexión
+    this.notificacionesService.notificaciones.set([...mockData.notificaciones]);
+    
+    // Sincronizar el signal local con el del servicio usando effect
+    effect(() => {
+      const notifs = this.notificacionesService.notificaciones();
+      this.notificaciones.set(notifs);
+    }, { allowSignalWrites: true });
+
+    // Verificar si hay token guardado y restaurar sesión
+    const token = localStorage.getItem('token');
+    if (token) {
+      this.isAuthenticated.set(true);
+      this.currentView.set('dashboard');
+      this.iniciarNotificaciones();
+    }
   }
 
-  login() { this.isAuthenticated.set(true); }
+  iniciarNotificaciones() {
+    this.notificacionesService.iniciarPolling(30000); // Cada 30 segundos
+  }
+
+  detenerNotificaciones() {
+    this.notificacionesService.detenerPolling();
+  }
+
+  login(email: string, password: string, rememberMe: boolean) {
+    this.loginError.set(null);
+    
+    this.authService.login({ email, password, rememberMe })
+      .pipe(
+        catchError(err => {
+          this.loginError.set(err.error?.detail || 'Error de conexión');
+          return of({ success: false, message: 'Error' });
+        })
+      )
+      .subscribe(response => {
+        if (response.success) {
+          this.isAuthenticated.set(true);
+          this.currentView.set('dashboard');
+          // Iniciar polling de notificaciones
+          this.iniciarNotificaciones();
+        }
+      });
+  }
+
+  register(nombre: string, email: string, password: string) {
+    this.registerError.set(null);
+    
+    this.authService.register({ nombre, email, password })
+      .pipe(
+        catchError(err => {
+          this.registerError.set(err.error?.detail || 'Error al registrar usuario');
+          return of({ success: false, message: 'Error' });
+        })
+      )
+      .subscribe(response => {
+        if (response.success) {
+          this.isAuthenticated.set(true);
+          this.currentView.set('dashboard');
+          // Iniciar polling de notificaciones
+          this.iniciarNotificaciones();
+        }
+      });
+  }
 
   logout() {
+    this.authService.logout();
+    this.detenerNotificaciones();
     this.isAuthenticated.set(false);
-    this.currentView.set('dashboard');
+    this.currentView.set('login');
     this.solicitudActiva.set(null);
   }
 
   navigateTo(view: string) { this.currentView.set(view); }
+
+  seleccionarSolicitudPendiente(solicitud: Solicitud) {
+    this.solicitudPendienteSeleccionada.set(solicitud);
+    this.currentView.set('seguimiento');
+  }
+
+  limpiarSolicitudPendiente() {
+    this.solicitudPendienteSeleccionada.set(null);
+  }
 
   addNotificacion(notif: Omit<Notificacion, 'id' | 'timestamp' | 'leida'>) {
     const nueva: Notificacion = {
@@ -95,6 +176,7 @@ export class AppStateService {
       notificaciones: 'Notificaciones',
       personal: 'Personal',
       perfil: 'Perfil del Taller',
+      gruas: 'Gestión de Grúas',
     };
     return map[this.currentView()] ?? 'AsisteGO';
   }

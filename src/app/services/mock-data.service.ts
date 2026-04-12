@@ -82,9 +82,9 @@ export class MockDataService {
   ];
 
   facturas: Factura[] = [
-    { id: 'f1', servicioId: 's1', cliente: this.clientes[0], monto: 250, comision: 25, total: 275, fecha: new Date(), metodoPago: 'qr', comprobante: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=300', enviada: true },
-    { id: 'f2', servicioId: 's2', cliente: this.clientes[1], monto: 500, comision: 50, total: 550, fecha: new Date(), metodoPago: 'tarjeta', enviada: true },
-    { id: 'f3', servicioId: 's3', cliente: this.clientes[2], monto: 100, comision: 10, total: 110, fecha: new Date(Date.now() - 2 * 60 * 60 * 1000), metodoPago: 'qr', enviada: false },
+    { id: 'f1', solicitudId: 's1', cliente: this.clientes[0], monto: 250, comision: 25, total: 275, fecha: new Date(), metodoPago: 'qr', comprobante: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=300', enviada: true },
+    { id: 'f2', solicitudId: 's2', cliente: this.clientes[1], monto: 500, comision: 50, total: 550, fecha: new Date(), metodoPago: 'tarjeta', enviada: true },
+    { id: 'f3', solicitudId: 's3', cliente: this.clientes[2], monto: 100, comision: 10, total: 110, fecha: new Date(Date.now() - 2 * 60 * 60 * 1000), metodoPago: 'qr', enviada: false },
   ];
 
   taller: Taller = {

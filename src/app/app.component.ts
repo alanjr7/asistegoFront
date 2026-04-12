@@ -4,6 +4,7 @@ import { AppStateService } from './services/app-state.service';
 import { SidebarComponent } from './components/layout/sidebar.component';
 import { TopbarComponent } from './components/layout/topbar.component';
 import { LoginViewComponent } from './views/login-view.component';
+import { RegisterViewComponent } from './views/register-view.component';
 import { DashboardViewComponent } from './views/dashboard-view.component';
 import {
   ChatViewComponent,
@@ -15,6 +16,7 @@ import {
   NotificacionesViewComponent,
   PersonalViewComponent,
   PerfilTallerViewComponent,
+  GruaViewComponent,
 } from './views/all-views.component';
 import { IAWidgetComponent, CalificacionModalComponent } from './components/widgets/widgets.component';
 
@@ -26,6 +28,7 @@ import { IAWidgetComponent, CalificacionModalComponent } from './components/widg
     SidebarComponent,
     TopbarComponent,
     LoginViewComponent,
+    RegisterViewComponent,
     DashboardViewComponent,
     ChatViewComponent,
     SeguimientoViewComponent,
@@ -36,6 +39,7 @@ import { IAWidgetComponent, CalificacionModalComponent } from './components/widg
     NotificacionesViewComponent,
     PersonalViewComponent,
     PerfilTallerViewComponent,
+    GruaViewComponent,
     IAWidgetComponent,
     CalificacionModalComponent,
   ],

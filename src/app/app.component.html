@@ -1,5 +1,6 @@
-<!-- Login -->
-<app-login-view *ngIf="!state.isAuthenticated()"></app-login-view>
+<!-- Login / Registro -->
+<app-login-view *ngIf="!state.isAuthenticated() && state.currentView() === 'login'"></app-login-view>
+<app-register-view *ngIf="!state.isAuthenticated() && state.currentView() === 'register'"></app-register-view>
 
 <!-- App principal -->
 <div *ngIf="state.isAuthenticated()" class="app-shell">
@@ -21,6 +22,7 @@
       <app-notificaciones-view *ngIf="state.currentView() === 'notificaciones'"></app-notificaciones-view>
       <app-personal-view     *ngIf="state.currentView() === 'personal'"></app-personal-view>
       <app-perfil-taller-view *ngIf="state.currentView() === 'perfil'"></app-perfil-taller-view>
+      <app-grua-view         *ngIf="state.currentView() === 'gruas'"></app-grua-view>
     </div>
   </div>
 

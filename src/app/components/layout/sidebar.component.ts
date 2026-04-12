@@ -21,6 +21,7 @@ export class SidebarComponent {
   navigation: NavItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: 'grid' },
     { id: 'seguimiento', label: 'Seguimiento', icon: 'wrench' },
+    { id: 'gruas', label: 'Grúas', icon: 'truck' },
     { id: 'personal', label: 'Personal', icon: 'users-cog' },
     { id: 'pagos', label: 'Pagos', icon: 'dollar-sign' },
     { id: 'repuestos', label: 'Repuestos', icon: 'package' },

@@ -1,4 +1,16 @@
 <div class="dashboard">
+  <!-- Loading state -->
+  <div *ngIf="loading()" class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Cargando solicitudes...</p>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="error()" class="error-banner">
+    <p>⚠️ {{ error() }}</p>
+    <button class="btn btn-sm btn-outline" (click)="cargarDatos()">Reintentar</button>
+  </div>
+
   <!-- Mapa principal -->
   <div class="map-section" [class.expanded]="mapaExpandido()">
     <!-- Solicitud en curso -->
@@ -23,11 +35,11 @@
       </div>
       <div class="card p-4">
         <p class="text-sm text-gray-500">Ingresos Hoy</p>
-        <p class="stat-value">Bs. 1,245</p>
+        <p class="stat-value">Bs. {{ ingresosHoy() | number:'1.0-0' }}</p>
       </div>
       <div class="card p-4">
         <p class="text-sm text-gray-500">Servicios Completados</p>
-        <p class="stat-value">8</p>
+        <p class="stat-value">{{ serviciosHoy() }}</p>
       </div>
       <div class="card p-4">
         <p class="text-sm text-gray-500">Calificación</p>
@@ -98,6 +110,47 @@
           <span *ngIf="s.imagenes">📷 {{ s.imagenes.length }}</span>
           <span *ngIf="s.audio">🎙️ Audio</span>
           <span *ngIf="s.requiereRepuestos" class="badge badge-secondary">Requiere repuestos</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel pagos recientes -->
+  <div class="pagos-panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <h3 class="text-gray-900">Pagos Recientes</h3>
+      <button class="btn btn-outline btn-sm" (click)="navigateToPagos()">💰 Ver todos</button>
+    </div>
+
+    <div class="pagos-list">
+      <div *ngIf="pagosRecientes().length === 0" style="text-align:center;padding:1rem;color:#6b7280">
+        <p class="text-sm">No hay pagos registrados</p>
+      </div>
+
+      <div
+        *ngFor="let pago of pagosRecientes()"
+        class="card pago-card"
+        (click)="navigateToPagos()"
+      >
+        <div class="pago-header">
+          <div style="display:flex;align-items:center;gap:0.5rem">
+            <img [src]="pago.cliente?.foto || 'https://i.pravatar.cc/150?img=12'" [alt]="pago.cliente?.nombre" class="pago-avatar" />
+            <div>
+              <p class="font-medium text-gray-900">{{ pago.cliente?.nombre || 'Cliente' }}</p>
+              <p class="text-xs text-gray-500">{{ pago.fecha | date:'dd/MM HH:mm' }}</p>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <p class="font-medium" style="color:#2563eb;font-size:1.1rem">Bs. {{ pago.monto }}</p>
+            <span class="badge badge-green" *ngIf="pago.enviada">✓ Completado</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid #e5e7eb">
+          <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.875rem;color:#6b7280">
+            <span>{{ getMetodoPagoIcon(pago.metodoPago) }}</span>
+            <span>{{ pago.metodoPago || 'Efectivo' }}</span>
+          </div>
+          <span *ngIf="pago.total" class="text-xs text-gray-500">Total: Bs. {{ pago.total }}</span>
         </div>
       </div>
     </div>
@@ -186,19 +239,51 @@
 
       <hr class="separator" />
 
+      <!-- Control de Estados del Servicio (Solo para Taller) -->
+      <div class="control-servicio-section">
+        <h4 class="text-sm text-gray-500" style="margin-bottom:0.75rem">📋 Control del Servicio</h4>
+
+        <!-- Timeline de estados -->
+        <div class="timeline-estados">
+          <div *ngFor="let e of timelineEstados; let i = index" class="timeline-item">
+            <div class="timeline-circle" [class.active]="isEstadoActive(e.key)">
+              <span *ngIf="isEstadoActive(e.key)">✓</span>
+              <span *ngIf="!isEstadoActive(e.key)">{{ i + 1 }}</span>
+            </div>
+            <span class="timeline-label" [class.active]="isEstadoActive(e.key)">{{ e.label }}</span>
+          </div>
+        </div>
+
+        <!-- Botón dinámico según estado -->
+        <div *ngIf="nextEstado && !actualizandoEstado()" style="margin-top:1rem">
+          <button
+            class="btn btn-primary"
+            style="width:100%;display:flex;align-items:center;justify-content:center;gap:0.5rem"
+            (click)="avanzarEstado()"
+          >
+            <span>{{ nextEstado.icon }}</span>
+            <span>{{ nextEstado.label }}</span>
+          </button>
+        </div>
+
+        <!-- Loading state -->
+        <div *ngIf="actualizandoEstado()" style="text-align:center;padding:0.75rem">
+          <div class="spinner-sm"></div>
+          <p class="text-sm text-gray-500" style="margin-top:0.5rem">Actualizando estado...</p>
+        </div>
+      </div>
+
+      <hr class="separator" />
+
       <!-- Acciones -->
       <div style="display:flex;gap:0.75rem">
         <button class="btn btn-outline" style="flex:1" (click)="reject()">
           ✕ Rechazar
         </button>
-        <button class="btn btn-primary" style="flex:1" (click)="accept()">
-          ✓ Aceptar Solicitud
+        <button class="btn btn-ghost" style="flex:1">
+          📞 Llamar
         </button>
       </div>
-
-      <button class="btn btn-ghost" style="width:100%">
-        📞 Llamar a {{ selectedSolicitud()!.cliente.nombre }}
-      </button>
     </div>
   </div>
 </div>
