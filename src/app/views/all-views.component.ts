@@ -313,16 +313,111 @@ export class ChatViewComponent implements OnInit {
           </div>
         </div>
 
-        <!-- Acciones -->
-        <div class="card" style="padding:1rem;background:linear-gradient(135deg,#eff6ff,#f0fdf4)">
+        <!-- Selección de Personal (se muestra al hacer clic en Aceptar) -->
+        <div *ngIf="showAsignacionModal()" class="card" style="padding:1rem;background:#f8fafc;border:2px solid #2563eb">
+          <h3 class="text-sm font-medium" style="margin-bottom:0.75rem;color:#1d4ed8">👥 Seleccionar Personal</h3>
+
+          <!-- Error -->
+          <div *ngIf="asignacionError()" style="background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:0.5rem;border-radius:0.375rem;margin-bottom:0.75rem;font-size:0.875rem">
+            {{ asignacionError() }}
+          </div>
+
+          <!-- Resumen de selección -->
+          <div *ngIf="personalSeleccionadoIds().length > 0" style="background:#eff6ff;border:1px solid #bfdbfe;padding:0.5rem;border-radius:0.375rem;margin-bottom:0.75rem">
+            <p class="text-xs font-medium" style="color:#1d4ed8">Seleccionados: {{ personalSeleccionadoIds().length }}</p>
+            <div style="display:flex;flex-wrap:wrap;gap:0.25rem;margin-top:0.25rem">
+              <span *ngFor="let pid of personalSeleccionadoIds()" class="badge badge-blue" style="font-size:0.75rem">
+                {{ getNombrePersonal(pid) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Lista de personal por rol -->
+          <div style="margin-bottom:0.75rem;max-height:250px;overflow-y:auto">
+            <!-- Gruistas -->
+            <div *ngIf="personalDisponiblesPorRol['grua']?.length" style="margin-bottom:0.75rem">
+              <p class="text-xs text-gray-400" style="margin-bottom:0.25rem">🚛 GRÚA</p>
+              <div style="display:flex;flex-direction:column;gap:0.375rem">
+                <div *ngFor="let p of personalDisponiblesPorRol['grua']"
+                     (click)="togglePersonalSeleccion(p.id)"
+                     style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem;border:1px solid;border-radius:0.375rem;cursor:pointer;font-size:0.875rem"
+                     [style.border-color]="isPersonalSeleccionado(p.id) ? '#2563eb' : '#e5e7eb'"
+                     [style.background]="isPersonalSeleccionado(p.id) ? '#eff6ff' : 'white'">
+                  <input type="checkbox" [checked]="isPersonalSeleccionado(p.id)" style="pointer-events:none;width:14px;height:14px"/>
+                  <img [src]="p.foto || 'https://i.pravatar.cc/150?img=1'" [alt]="p.nombre" style="width:28px;height:28px;border-radius:50%;object-fit:cover"/>
+                  <div style="flex:1">
+                    <p class="font-medium" style="font-size:0.8rem">{{ p.nombre }}</p>
+                    <p class="text-xs text-gray-500">{{ p.telefono }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mecánicos -->
+            <div *ngIf="personalDisponiblesPorRol['mecanico']?.length" style="margin-bottom:0.75rem">
+              <p class="text-xs text-gray-400" style="margin-bottom:0.25rem">🔧 MECÁNICOS</p>
+              <div style="display:flex;flex-direction:column;gap:0.375rem">
+                <div *ngFor="let p of personalDisponiblesPorRol['mecanico']"
+                     (click)="togglePersonalSeleccion(p.id)"
+                     style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem;border:1px solid;border-radius:0.375rem;cursor:pointer;font-size:0.875rem"
+                     [style.border-color]="isPersonalSeleccionado(p.id) ? '#2563eb' : '#e5e7eb'"
+                     [style.background]="isPersonalSeleccionado(p.id) ? '#eff6ff' : 'white'">
+                  <input type="checkbox" [checked]="isPersonalSeleccionado(p.id)" style="pointer-events:none;width:14px;height:14px"/>
+                  <img [src]="p.foto || 'https://i.pravatar.cc/150?img=1'" [alt]="p.nombre" style="width:28px;height:28px;border-radius:50%;object-fit:cover"/>
+                  <div style="flex:1">
+                    <p class="font-medium" style="font-size:0.8rem">{{ p.nombre }}</p>
+                    <p class="text-xs text-gray-500">{{ p.telefono }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Eléctricos -->
+            <div *ngIf="personalDisponiblesPorRol['electrico']?.length" style="margin-bottom:0.75rem">
+              <p class="text-xs text-gray-400" style="margin-bottom:0.25rem">⚡ ELÉCTRICOS</p>
+              <div style="display:flex;flex-direction:column;gap:0.375rem">
+                <div *ngFor="let p of personalDisponiblesPorRol['electrico']"
+                     (click)="togglePersonalSeleccion(p.id)"
+                     style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem;border:1px solid;border-radius:0.375rem;cursor:pointer;font-size:0.875rem"
+                     [style.border-color]="isPersonalSeleccionado(p.id) ? '#2563eb' : '#e5e7eb'"
+                     [style.background]="isPersonalSeleccionado(p.id) ? '#eff6ff' : 'white'">
+                  <input type="checkbox" [checked]="isPersonalSeleccionado(p.id)" style="pointer-events:none;width:14px;height:14px"/>
+                  <img [src]="p.foto || 'https://i.pravatar.cc/150?img=1'" [alt]="p.nombre" style="width:28px;height:28px;border-radius:50%;object-fit:cover"/>
+                  <div style="flex:1">
+                    <p class="font-medium" style="font-size:0.8rem">{{ p.nombre }}</p>
+                    <p class="text-xs text-gray-500">{{ p.telefono }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sin personal disponible -->
+            <div *ngIf="personalDisponibles().length === 0" style="text-align:center;padding:0.75rem;color:#6b7280">
+              <p style="font-size:0.875rem">No hay personal disponible</p>
+            </div>
+          </div>
+
+          <!-- Botones de acción -->
+          <div style="display:flex;gap:0.5rem">
+            <button class="btn btn-outline" style="flex:1;font-size:0.875rem" (click)="cerrarModalAsignacion()">
+              Cancelar
+            </button>
+            <button class="btn btn-primary" style="flex:1;font-size:0.875rem" (click)="confirmarAsignacion()" [disabled]="asignandoPersonal() || personalSeleccionadoIds().length === 0">
+              <span *ngIf="!asignandoPersonal()">✓ Confirmar</span>
+              <span *ngIf="asignandoPersonal()">⏳ Asignando...</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Acciones (solo se muestra cuando NO está abierta la selección) -->
+        <div *ngIf="!showAsignacionModal()" class="card" style="padding:1rem;background:linear-gradient(135deg,#eff6ff,#f0fdf4)">
           <h3 class="text-sm font-medium" style="margin-bottom:0.75rem">¿Deseas aceptar esta solicitud?</h3>
           <div style="display:flex;gap:0.75rem">
             <button class="btn btn-outline" style="flex:1" (click)="rechazarSolicitudPendiente()">
               ✕ Rechazar
             </button>
-            <button class="btn btn-primary" style="flex:1" (click)="aceptarSolicitudPendiente()" [disabled]="aceptando()">
-              <span *ngIf="!aceptando()">✓ Aceptar</span>
-              <span *ngIf="aceptando()">⏳ Aceptando...</span>
+            <button class="btn btn-primary" style="flex:1" (click)="aceptarSolicitudPendiente()">
+              ✓ Aceptar
             </button>
           </div>
         </div>
@@ -442,6 +537,20 @@ export class ChatViewComponent implements OnInit {
           </div>
         </div>
 
+        <!-- Personal Asignado -->
+        <div *ngIf="solicitudSeleccionada()!.personalAsignado?.length" class="card" style="padding:1rem">
+          <h3 class="text-sm text-gray-500" style="margin-bottom:0.75rem">👥 Personal Asignado</h3>
+          <div style="display:flex;flex-direction:column;gap:0.75rem">
+            <div *ngFor="let p of solicitudSeleccionada()!.personalAsignado" style="display:flex;align-items:center;gap:0.75rem;padding:0.5rem;background:#f9fafb;border-radius:0.5rem">
+              <img [src]="p.foto || 'https://i.pravatar.cc/150?img=1'" [alt]="p.nombre" style="width:40px;height:40px;border-radius:50%;object-fit:cover"/>
+              <div style="flex:1">
+                <p class="font-medium text-sm">{{ p.nombre }}</p>
+                <p class="text-xs text-gray-500">{{ p.rol === 'grua' ? '🚛 Gruista' : p.rol === 'mecanico' ? '🔧 Mecánico' : '⚡ Eléctrico' }} • {{ p.telefono }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Problema -->
         <div class="card" style="padding:1rem">
           <h3 class="text-sm text-gray-500" style="margin-bottom:0.5rem">Problema reportado</h3>
@@ -506,6 +615,7 @@ export class SeguimientoViewComponent implements OnInit, OnDestroy {
   state = inject(AppStateService);
   solicitudesService = inject(SolicitudesService);
   evidenciasService = inject(EvidenciasService);
+  personalService = inject(PersonalService);
   estadoActual = signal('en_camino');
   loading = signal(false);
   error = signal<string | null>(null);
@@ -523,6 +633,13 @@ export class SeguimientoViewComponent implements OnInit, OnDestroy {
 
   // Solicitud pendiente
   aceptando = signal(false);
+
+  // ============ MODAL ASIGNACIÓN DE PERSONAL ============
+  showAsignacionModal = signal(false);
+  personalSeleccionadoIds = signal<string[]>([]);
+  asignandoPersonal = signal(false);
+  asignacionError = signal<string | null>(null);
+  personalDisponibles = signal<Personal[]>([]);
 
   estados = [
     { id: 'aceptada', label: 'Aceptada', emoji: '✓' },
@@ -617,24 +734,93 @@ export class SeguimientoViewComponent implements OnInit, OnDestroy {
   }
 
   aceptarSolicitudPendiente() {
+    // Abrir modal de asignación
     const solicitud = this.state.solicitudPendienteSeleccionada();
     if (!solicitud) return;
 
-    this.aceptando.set(true);
-    this.solicitudesService.cambiarEstado(solicitud.id, 'aceptada')
+    this.personalSeleccionadoIds.set([]);
+    this.asignacionError.set(null);
+    this.showAsignacionModal.set(true);
+    this.cargarPersonalDisponible();
+  }
+
+  cargarPersonalDisponible() {
+    this.personalService.listar({ disponibles: true })
       .subscribe({
-        next: () => {
-          this.state.aceptarSolicitud(solicitud);
+        next: (data) => this.personalDisponibles.set(data),
+        error: () => this.personalDisponibles.set([])
+      });
+  }
+
+  togglePersonalSeleccion(personalId: string) {
+    this.personalSeleccionadoIds.update(ids => {
+      if (ids.includes(personalId)) {
+        return ids.filter(id => id !== personalId);
+      } else {
+        return [...ids, personalId];
+      }
+    });
+  }
+
+  isPersonalSeleccionado(personalId: string): boolean {
+    return this.personalSeleccionadoIds().includes(personalId);
+  }
+
+  getNombrePersonal(personalId: string): string {
+    const p = this.personalDisponibles().find(p => p.id === personalId);
+    return p?.nombre || 'Desconocido';
+  }
+
+  get personalDisponiblesPorRol() {
+    const porRol: Record<string, Personal[]> = {
+      mecanico: [],
+      electrico: [],
+      grua: [],
+      administrador: [],
+      encargado: []
+    };
+
+    this.personalDisponibles().forEach(p => {
+      if (p.rol in porRol) {
+        porRol[p.rol].push(p);
+      }
+    });
+
+    return porRol;
+  }
+
+  confirmarAsignacion() {
+    const solicitud = this.state.solicitudPendienteSeleccionada();
+    if (!solicitud) return;
+
+    if (this.personalSeleccionadoIds().length === 0) {
+      this.asignacionError.set('Debes seleccionar al menos un técnico');
+      return;
+    }
+
+    this.asignandoPersonal.set(true);
+    this.asignacionError.set(null);
+
+    this.solicitudesService.asignarPersonal(solicitud.id, this.personalSeleccionadoIds())
+      .subscribe({
+        next: (solicitudActualizada) => {
+          this.asignandoPersonal.set(false);
+          this.showAsignacionModal.set(false);
+          this.state.aceptarSolicitud(solicitudActualizada);
           this.state.limpiarSolicitudPendiente();
-          this.aceptando.set(false);
-          // Recargar lista de activas
           this.cargarSolicitudesActivas();
         },
         error: (err) => {
-          this.error.set('Error al aceptar solicitud: ' + err.message);
-          this.aceptando.set(false);
+          this.asignandoPersonal.set(false);
+          this.asignacionError.set('Error al asignar: ' + err.message);
         }
       });
+  }
+
+  cerrarModalAsignacion() {
+    this.showAsignacionModal.set(false);
+    this.personalSeleccionadoIds.set([]);
+    this.asignacionError.set(null);
   }
 
   rechazarSolicitudPendiente() {

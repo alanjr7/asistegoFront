@@ -42,6 +42,7 @@ export interface Solicitud {
   analisisIA?: AnalisisIA;
   tipo?: 'normal' | 'grua';
   mecanicoAsignado?: Personal;
+  personalAsignado?: PersonalAsignado[];  // Nuevo campo para múltiples técnicos
 }
 
 export interface Repuesto {
@@ -108,6 +109,15 @@ export interface Personal {
   telefono?: string;
   asistenciasDia: number;
   asistenciasMes: number;
+}
+
+export interface PersonalAsignado {
+  id: string;
+  nombre: string;
+  rol: 'mecanico' | 'electrico' | 'grua' | 'administrador' | 'encargado';
+  foto?: string;
+  telefono?: string;
+  fechaAsignacion: Date;
 }
 
 export interface Factura {

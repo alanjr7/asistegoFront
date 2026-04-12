@@ -37,6 +37,14 @@ export class SolicitudesService {
     return this.api.put<Solicitud>(`solicitudes/${id}/asignar`, { mecanico_id: mecanicoId });
   }
 
+  asignarPersonal(id: string, personalIds: string[]): Observable<Solicitud> {
+    return this.api.put<Solicitud>(`solicitudes/${id}/asignar`, { personal_ids: personalIds });
+  }
+
+  liberarPersonal(id: string): Observable<{ success: boolean; message: string }> {
+    return this.api.post<{ success: boolean; message: string }>(`solicitudes/${id}/liberar`, {});
+  }
+
   cancelar(id: string): Observable<{ success: boolean; message: string }> {
     return this.api.delete<{ success: boolean; message: string }>(`solicitudes/${id}`);
   }

@@ -283,6 +283,120 @@
         <button class="btn btn-ghost" style="flex:1">
           📞 Llamar
         </button>
+        <button class="btn btn-primary" style="flex:1" (click)="accept()">
+          ✓ Aceptar y Asignar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Asignación de Personal -->
+<div *ngIf="showAsignacionModal()" class="modal-overlay" (click)="cerrarModalAsignacion()">
+  <div class="modal-card card" style="max-width: 600px; max-height: 80vh; overflow-y: auto;" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+        <h3>👥 Asignar Personal</h3>
+        <button class="btn btn-ghost btn-icon" (click)="cerrarModalAsignacion()">✕</button>
+      </div>
+
+      <p class="text-sm text-gray-500" style="margin-bottom:1rem">
+        Solicitud de <strong>{{ selectedSolicitud()?.cliente?.nombre }}</strong> -
+        {{ selectedSolicitud()?.tipo === 'grua' ? '🚛 Grúa' : '🔧 Normal' }}
+      </p>
+
+      <!-- Error -->
+      <div *ngIf="asignacionError()" style="background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:0.75rem;border-radius:0.5rem;margin-bottom:1rem">
+        {{ asignacionError() }}
+      </div>
+
+      <!-- Resumen de selección -->
+      <div *ngIf="personalSeleccionadoIds().length > 0" style="background:#eff6ff;border:1px solid #bfdbfe;padding:0.75rem;border-radius:0.5rem;margin-bottom:1rem">
+        <p class="text-sm font-medium" style="color:#1d4ed8">Personal seleccionado: {{ personalSeleccionadoIds().length }}</p>
+        <div style="display:flex;flex-wrap:wrap;gap:0.25rem;margin-top:0.5rem">
+          <span *ngFor="let pid of personalSeleccionadoIds()" class="badge badge-blue">
+            {{ getNombrePersonal(pid) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Lista de personal por rol -->
+      <div style="margin-bottom:1rem">
+        <h4 class="text-sm text-gray-500" style="margin-bottom:0.75rem">Personal Disponible</h4>
+
+        <!-- Gruistas -->
+        <div *ngIf="personalDisponiblesPorRol['grua']?.length" style="margin-bottom:1rem">
+          <p class="text-xs text-gray-400" style="margin-bottom:0.5rem">🚛 GRÚA</p>
+          <div style="display:flex;flex-direction:column;gap:0.5rem">
+            <div *ngFor="let p of personalDisponiblesPorRol['grua']"
+                 (click)="togglePersonalSeleccion(p.id)"
+                 style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;border:2px solid;border-radius:0.5rem;cursor:pointer;"
+                 [style.border-color]="isPersonalSeleccionado(p.id) ? '#2563eb' : '#e5e7eb'"
+                 [style.background]="isPersonalSeleccionado(p.id) ? '#eff6ff' : 'white'">
+              <input type="checkbox" [checked]="isPersonalSeleccionado(p.id)" style="pointer-events:none"/>
+              <img [src]="p.foto || 'https://i.pravatar.cc/150?img=1'" [alt]="p.nombre" style="width:40px;height:40px;border-radius:50%;object-fit:cover"/>
+              <div style="flex:1">
+                <p class="font-medium text-sm">{{ p.nombre }}</p>
+                <p class="text-xs text-gray-500">{{ p.telefono }} • {{ p.asistenciasMes }} servicios este mes</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mecánicos -->
+        <div *ngIf="personalDisponiblesPorRol['mecanico']?.length" style="margin-bottom:1rem">
+          <p class="text-xs text-gray-400" style="margin-bottom:0.5rem">🔧 MECÁNICOS</p>
+          <div style="display:flex;flex-direction:column;gap:0.5rem">
+            <div *ngFor="let p of personalDisponiblesPorRol['mecanico']"
+                 (click)="togglePersonalSeleccion(p.id)"
+                 style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;border:2px solid;border-radius:0.5rem;cursor:pointer;"
+                 [style.border-color]="isPersonalSeleccionado(p.id) ? '#2563eb' : '#e5e7eb'"
+                 [style.background]="isPersonalSeleccionado(p.id) ? '#eff6ff' : 'white'">
+              <input type="checkbox" [checked]="isPersonalSeleccionado(p.id)" style="pointer-events:none"/>
+              <img [src]="p.foto || 'https://i.pravatar.cc/150?img=1'" [alt]="p.nombre" style="width:40px;height:40px;border-radius:50%;object-fit:cover"/>
+              <div style="flex:1">
+                <p class="font-medium text-sm">{{ p.nombre }}</p>
+                <p class="text-xs text-gray-500">{{ p.telefono }} • {{ p.asistenciasMes }} servicios este mes</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Eléctricos -->
+        <div *ngIf="personalDisponiblesPorRol['electrico']?.length" style="margin-bottom:1rem">
+          <p class="text-xs text-gray-400" style="margin-bottom:0.5rem">⚡ ELÉCTRICOS</p>
+          <div style="display:flex;flex-direction:column;gap:0.5rem">
+            <div *ngFor="let p of personalDisponiblesPorRol['electrico']"
+                 (click)="togglePersonalSeleccion(p.id)"
+                 style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;border:2px solid;border-radius:0.5rem;cursor:pointer;"
+                 [style.border-color]="isPersonalSeleccionado(p.id) ? '#2563eb' : '#e5e7eb'"
+                 [style.background]="isPersonalSeleccionado(p.id) ? '#eff6ff' : 'white'">
+              <input type="checkbox" [checked]="isPersonalSeleccionado(p.id)" style="pointer-events:none"/>
+              <img [src]="p.foto || 'https://i.pravatar.cc/150?img=1'" [alt]="p.nombre" style="width:40px;height:40px;border-radius:50%;object-fit:cover"/>
+              <div style="flex:1">
+                <p class="font-medium text-sm">{{ p.nombre }}</p>
+                <p class="text-xs text-gray-500">{{ p.telefono }} • {{ p.asistenciasMes }} servicios este mes</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sin personal disponible -->
+        <div *ngIf="personal().length === 0" style="text-align:center;padding:1rem;color:#6b7280">
+          <p>No hay personal disponible en este momento</p>
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div style="display:flex;gap:0.75rem;margin-top:1rem">
+        <button class="btn btn-outline" style="flex:1" (click)="cerrarModalAsignacion()">
+          Cancelar
+        </button>
+        <button class="btn btn-primary" style="flex:1" (click)="confirmarAsignacion()" [disabled]="asignando() || personalSeleccionadoIds().length === 0">
+          <span *ngIf="!asignando()">✓ Confirmar y Aceptar</span>
+          <span *ngIf="asignando()">⏳ Asignando...</span>
+        </button>
       </div>
     </div>
   </div>

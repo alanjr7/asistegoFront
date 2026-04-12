@@ -35,6 +35,12 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
   ingresosHoy = signal<number>(0);
   serviciosHoy = signal<number>(0);
 
+  // ============ MODAL ASIGNACIÓN DE PERSONAL ============
+  showAsignacionModal = signal(false);
+  personalSeleccionadoIds = signal<string[]>([]);
+  asignando = signal(false);
+  asignacionError = signal<string | null>(null);
+
   private map: any = null;
   private markers: any[] = [];
 
@@ -151,20 +157,76 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
   closeModal() { this.selectedSolicitud.set(null); this.showAnalisisIA.set(false); }
 
   accept() {
+    // Abrir modal de asignación en lugar de aceptar directamente
     const s = this.selectedSolicitud();
     if (s) {
-      this.solicitudesService.cambiarEstado(s.id, 'aceptada')
-        .subscribe({
-          next: () => {
-            this.state.aceptarSolicitud(s);
-            this.selectedSolicitud.set(null);
-            this.cargarDatos();
-          },
-          error: (err) => {
-            this.error.set('Error al aceptar: ' + err.message);
-          }
-        });
+      this.personalSeleccionadoIds.set([]);
+      this.asignacionError.set(null);
+      this.showAsignacionModal.set(true);
+      // Cargar personal disponible
+      this.cargarPersonalDisponible();
     }
+  }
+
+  cargarPersonalDisponible() {
+    this.personalService.listar({ disponibles: true })
+      .subscribe({
+        next: (data) => this.personal.set(data),
+        error: () => this.personal.set([...this.mockData.personal].filter(p => p.estado === 'disponible'))
+      });
+  }
+
+  togglePersonalSeleccion(personalId: string) {
+    this.personalSeleccionadoIds.update(ids => {
+      if (ids.includes(personalId)) {
+        return ids.filter(id => id !== personalId);
+      } else {
+        return [...ids, personalId];
+      }
+    });
+  }
+
+  isPersonalSeleccionado(personalId: string): boolean {
+    return this.personalSeleccionadoIds().includes(personalId);
+  }
+
+  getNombrePersonal(personalId: string): string {
+    const p = this.personal().find(p => p.id === personalId);
+    return p?.nombre || 'Desconocido';
+  }
+
+  confirmarAsignacion() {
+    const s = this.selectedSolicitud();
+    if (!s) return;
+
+    if (this.personalSeleccionadoIds().length === 0) {
+      this.asignacionError.set('Debes seleccionar al menos un técnico');
+      return;
+    }
+
+    this.asignando.set(true);
+    this.asignacionError.set(null);
+
+    this.solicitudesService.asignarPersonal(s.id, this.personalSeleccionadoIds())
+      .subscribe({
+        next: (solicitudActualizada) => {
+          this.asignando.set(false);
+          this.showAsignacionModal.set(false);
+          this.state.aceptarSolicitud(solicitudActualizada);
+          this.selectedSolicitud.set(null);
+          this.cargarDatos();
+        },
+        error: (err) => {
+          this.asignando.set(false);
+          this.asignacionError.set('Error al asignar: ' + err.message);
+        }
+      });
+  }
+
+  cerrarModalAsignacion() {
+    this.showAsignacionModal.set(false);
+    this.personalSeleccionadoIds.set([]);
+    this.asignacionError.set(null);
   }
 
   reject() {
@@ -209,6 +271,26 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
       { key: 'reparando', label: 'Llegada', icon: '📍' },
       { key: 'finalizada', label: 'Reparando', icon: '🔧' }
     ];
+  }
+
+  rolLabel(rol: string) { return ({ mecanico: 'Mecánico', electrico: 'Eléctrico', grua: 'Grúa', administrador: 'Administrador', encargado: 'Encargado' } as any)[rol] ?? rol; }
+
+  get personalDisponiblesPorRol() {
+    const porRol: Record<string, Personal[]> = {
+      mecanico: [],
+      electrico: [],
+      grua: [],
+      administrador: [],
+      encargado: []
+    };
+
+    this.personal().forEach(p => {
+      if (p.rol in porRol) {
+        porRol[p.rol].push(p);
+      }
+    });
+
+    return porRol;
   }
 
   isEstadoActive(estadoKey: string): boolean {
