@@ -6,13 +6,15 @@ import { PersonalService } from '../services/personal.service';
 import { MockDataService, SANTA_CRUZ_CENTER } from '../services/mock-data.service';
 import { Solicitud, Personal, Factura } from '../models/types.model';
 import { FacturasService } from '../services/facturas.service';
+import { PagosService } from '../services/pagos.service';
+import { ConfirmarPagoComponent } from '../components/confirmar-pago/confirmar-pago.component';
 
 declare const L: any;
 
 @Component({
   selector: 'app-dashboard-view',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ConfirmarPagoComponent],
   templateUrl: './dashboard-view.component.html',
   styleUrls: ['./dashboard-view.component.css'],
 })
@@ -21,6 +23,7 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
   solicitudesService = inject(SolicitudesService);
   personalService = inject(PersonalService);
   facturasService = inject(FacturasService);
+  pagosService = inject(PagosService);
   mockData = inject(MockDataService);
 
   solicitudes = signal<Solicitud[]>([]);
@@ -40,6 +43,10 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
   personalSeleccionadoIds = signal<string[]>([]);
   asignando = signal(false);
   asignacionError = signal<string | null>(null);
+
+  // ============ MODAL CONFIRMAR PAGO ============
+  showConfirmarPagoModal = signal(false);
+  confirmandoPago = signal(false);
 
   private map: any = null;
   private markers: any[] = [];
@@ -321,6 +328,11 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
           // Recargar datos del dashboard
           this.cargarDatos();
           this.actualizandoEstado.set(false);
+
+          // Si se finalizó el servicio, mostrar modal de confirmar pago
+          if (next.estado === 'finalizada') {
+            setTimeout(() => this.mostrarModalConfirmarPago(), 300);
+          }
         },
         error: (err) => {
           this.error.set('Error al actualizar estado: ' + err.message);
@@ -373,5 +385,49 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
 
   getEstadoColor(estado: string): string {
     return estado === 'completado' ? '#22c55e' : '#eab308';
+  }
+
+  // ============ MÉTODOS CONFIRMAR PAGO ============
+  mostrarModalConfirmarPago() {
+    this.showConfirmarPagoModal.set(true);
+  }
+
+  cerrarModalConfirmarPago() {
+    this.showConfirmarPagoModal.set(false);
+  }
+
+  onPagoConfirmado(event: any) {
+    this.confirmandoPago.set(false);
+    this.showConfirmarPagoModal.set(false);
+    this.selectedSolicitud.set(null);
+    // Recargar datos para reflejar el cambio
+    this.cargarDatos();
+    this.cargarIngresosHoy();
+    // Mostrar mensaje de éxito
+    alert(`Pago confirmado: Bs. ${event.total} (incluye comisión)`);
+  }
+
+  onPagoCancelado() {
+    this.showConfirmarPagoModal.set(false);
+  }
+
+  getEstadoPagoLabel(estadoPago: string | undefined): string {
+    const labels: Record<string, string> = {
+      'pendiente': 'Pendiente',
+      'confirmado': 'Esperando Pago',
+      'completado': 'Pagado',
+      'cancelado': 'Cancelado'
+    };
+    return labels[estadoPago || 'pendiente'] || 'Pendiente';
+  }
+
+  getEstadoPagoColor(estadoPago: string | undefined): string {
+    const colors: Record<string, string> = {
+      'pendiente': '#f59e0b',  // amber
+      'confirmado': '#3b82f6',  // blue
+      'completado': '#22c55e',  // green
+      'cancelado': '#ef4444'    // red
+    };
+    return colors[estadoPago || 'pendiente'] || '#f59e0b';
   }
 }

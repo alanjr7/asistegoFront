@@ -1,0 +1,61 @@
+<div class="modal-overlay" (click)="cancelar()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Confirmar Pago</h2>
+      <button class="btn-close" (click)="cancelar()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="service-info">
+        <p><strong>Cliente:</strong> {{ clienteNombre }}</p>
+        <p><strong>Vehículo:</strong> {{ vehiculoInfo }}</p>
+      </div>
+
+      <div class="form-group">
+        <label for="monto">Monto del Servicio (Bs.)</label>
+        <input
+          type="number"
+          id="monto"
+          [(ngModel)]="monto"
+          (input)="validarMonto()"
+          placeholder="Ej: 450"
+          min="1"
+          step="1"
+          class="form-control"
+          [class.error]="error"
+        />
+        <span class="error-message" *ngIf="error">{{ error }}</span>
+      </div>
+
+      <div class="payment-summary" *ngIf="monto > 0">
+        <div class="summary-row">
+          <span>Servicio:</span>
+          <span>Bs. {{ monto | number:'1.2-2' }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Comisión Plataforma (10%):</span>
+          <span>Bs. {{ comision | number:'1.2-2' }}</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total a Pagar:</span>
+          <span>Bs. {{ total | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <i class="icon-info">ℹ️</i>
+        <p>Al confirmar, el cliente recibirá una notificación con el monto total a pagar (incluyendo comisión).</p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="cancelar()" [disabled]="loading">
+        Cancelar
+      </button>
+      <button class="btn btn-primary" (click)="confirmar()" [disabled]="loading || !monto || monto <= 0">
+        <span *ngIf="loading">Confirmando...</span>
+        <span *ngIf="!loading">Confirmar Pago</span>
+      </button>
+    </div>
+  </div>
+</div>

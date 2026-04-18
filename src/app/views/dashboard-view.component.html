@@ -171,6 +171,13 @@
           </div>
         </div>
         <span class="badge btn-primary">{{ selectedSolicitud()!.estado }}</span>
+        <span
+          class="badge"
+          [style.background-color]="getEstadoPagoColor(selectedSolicitud()!.estado_pago)"
+          [style.color]="'white'"
+          *ngIf="selectedSolicitud()!.estado === 'finalizada'">
+          {{ getEstadoPagoLabel(selectedSolicitud()!.estado_pago) }}
+        </span>
       </div>
 
       <hr class="separator" />
@@ -287,6 +294,32 @@
           ✓ Aceptar y Asignar
         </button>
       </div>
+
+      <!-- Botón Confirmar Pago (solo para servicios finalizados con pago pendiente) -->
+      <div *ngIf="selectedSolicitud()!.estado === 'finalizada' && selectedSolicitud()!.estado_pago === 'pendiente'" style="margin-top:0.75rem">
+        <button
+          class="btn btn-primary"
+          style="width:100%;background:linear-gradient(135deg,#22c55e,#16a34a)"
+          (click)="mostrarModalConfirmarPago()">
+          💰 Confirmar Monto y Solicitar Pago
+        </button>
+      </div>
+
+      <!-- Info de pago confirmado -->
+      <div *ngIf="selectedSolicitud()!.estado === 'finalizada' && selectedSolicitud()!.estado_pago === 'confirmado'" style="margin-top:0.75rem;padding:0.75rem;background:#eff6ff;border-radius:8px">
+        <p style="margin:0;font-size:0.875rem;color:#1e40af">
+          <strong>💳 Esperando pago del cliente</strong><br>
+          Monto confirmado: Bs. {{ selectedSolicitud()!.monto_pago | number:'1.2-2' }}
+        </p>
+      </div>
+
+      <!-- Info de pago completado -->
+      <div *ngIf="selectedSolicitud()!.estado === 'finalizada' && selectedSolicitud()!.estado_pago === 'completado'" style="margin-top:0.75rem;padding:0.75rem;background:#f0fdf4;border-radius:8px">
+        <p style="margin:0;font-size:0.875rem;color:#166534">
+          <strong>✅ Pago completado</strong><br>
+          El cliente ha pagado Bs. {{ selectedSolicitud()!.monto_pago | number:'1.2-2' }}
+        </p>
+      </div>
     </div>
   </div>
 </div>
@@ -401,3 +434,13 @@
     </div>
   </div>
 </div>
+
+<!-- Modal de Confirmar Pago -->
+<app-confirmar-pago
+  *ngIf="showConfirmarPagoModal() && selectedSolicitud()"
+  [solicitudId]="selectedSolicitud()!.id"
+  [clienteNombre]="selectedSolicitud()!.cliente.nombre"
+  [vehiculoInfo]="selectedSolicitud()!.vehiculo.marca + ' ' + selectedSolicitud()!.vehiculo.modelo + ' (' + selectedSolicitud()!.vehiculo.placa + ')'"
+  (onConfirmar)="onPagoConfirmado($event)"
+  (onCancelar)="onPagoCancelado()">
+</app-confirmar-pago>
