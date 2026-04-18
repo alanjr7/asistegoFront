@@ -323,16 +323,10 @@ export interface PersonalUpdate {
 }
 
 export interface FacturaCreate {
-  solicitudId?: string;
-  servicio_id?: string;
-  cliente_id?: string;
+  solicitud_id: string;
+  cliente_id: string;
   monto: number;
-  comision?: number;
-  total?: number;
   metodo_pago: MetodoPago;
-  metodoPago?: MetodoPago;
-  comprobante?: string;
-  enviada?: boolean;
   items?: Array<{descripcion: string, cantidad: number, precioUnitario: number}>;
 }
 

@@ -16,6 +16,7 @@ import { AuthService } from '../services/auth.service';
 import { GruaService } from '../services/grua.service';
 import { EvidenciasService } from '../services/evidencias.service';
 import { ComprobantesService } from '../services/comprobantes.service';
+import { PagosService } from '../services/pagos.service';
 
 // ==================== CHAT VIEW ====================
 @Component({
@@ -931,20 +932,18 @@ export class SeguimientoViewComponent implements OnInit, OnDestroy {
         </select>
       </div>
       <div *ngIf="+monto > 0" class="resumen-pago">
-        <div class="resumen-row"><span>Monto:</span><span>Bs. {{ (+monto).toFixed(2) }}</span></div>
+        <div class="resumen-row"><span>Monto del servicio:</span><span>Bs. {{ (+monto).toFixed(2) }}</span></div>
         <div class="resumen-row"><span>Comisión (10%):</span><span>Bs. {{ (+monto * 0.1).toFixed(2) }}</span></div>
-        <hr class="separator" /><div class="resumen-row font-medium"><span>Total:</span><span>Bs. {{ (+monto * 1.1).toFixed(2) }}</span></div>
+        <hr class="separator" /><div class="resumen-row font-medium"><span>Total a cobrar:</span><span>Bs. {{ (+monto * 1.1).toFixed(2) }}</span></div>
       </div>
-      <div style="margin-bottom:1rem">
-        <label class="label">Comprobante del cliente</label>
-        <div style="margin-top:0.25rem">
-          <button *ngIf="!comprobanteSubido" class="btn btn-outline" style="width:100%" (click)="comprobanteSubido = true">📄 Subir comprobante</button>
-          <div *ngIf="comprobanteSubido" class="comprobante-ok">✓ Comprobante recibido</div>
-        </div>
-      </div>
-      <button class="btn btn-primary" style="width:100%" [disabled]="!monto || !comprobanteSubido" (click)="confirmarPago()">
-        ✓ Confirmar Pago y Generar Factura
+      <button class="btn btn-primary" style="width:100%" [disabled]="!monto || loading()" (click)="confirmarPago()">
+        {{ loading() ? 'Procesando...' : '💰 Confirmar Monto y Solicitar Pago' }}
       </button>
+      @if (error()) {
+        <div style="margin-top:0.5rem;padding:0.75rem;background:#fef2f2;border:1px solid #fecaca;border-radius:0.5rem;color:#dc2626;font-size:0.875rem">
+          {{ error() }}
+        </div>
+      }
     </div>
     <ng-template #noServicio>
       <div class="card empty-state-card">
@@ -1036,6 +1035,7 @@ export class PagosViewComponent implements OnInit {
   state = inject(AppStateService);
   mockData = inject(MockDataService);
   facturasService = inject(FacturasService);
+  pagosService = inject(PagosService);
   tab = signal('confirmar');
   monto = '';
   metodoPago = 'qr';
@@ -1082,31 +1082,30 @@ export class PagosViewComponent implements OnInit {
   async confirmarPago() {
     const solicitud = this.state.solicitudActiva();
     if (!solicitud || !this.monto) return;
-    
+
     const montoNum = parseFloat(this.monto);
     if (isNaN(montoNum) || montoNum <= 0) return;
-    
-    const comision = montoNum * 0.1;
-    const total = montoNum + comision;
-    
+
+    this.loading.set(true);
+    this.error.set(null);
+
     try {
-      await this.facturasService.crear({
-        solicitudId: solicitud.id,
-        monto: total,
-        metodo_pago: this.metodoPago as MetodoPago,
-        items: [
-          { descripcion: 'Servicio de asistencia vehicular', cantidad: 1, precioUnitario: montoNum },
-          { descripcion: 'Comisión plataforma (10%)', cantidad: 1, precioUnitario: comision },
-        ]
-      }).toPromise();
-      
+      console.log('[PAGOS] 📤 Confirmando pago para solicitud:', solicitud.id, 'monto:', montoNum);
+      const response = await this.pagosService.confirmarPago(solicitud.id, montoNum).toPromise();
+      console.log('[PAGOS] ✅ Confirmación exitosa:', response);
+
       // Notificar éxito
       this.state.confirmarPago();
       this.monto = '';
       this.comprobanteSubido = false;
       this.cargarFacturas();
+
+      alert(`Monto confirmado: Bs. ${response?.total || montoNum}. El cliente ha sido notificado para proceder al pago.`);
     } catch (err: any) {
-      this.error.set('Error al generar factura: ' + err.message);
+      console.error('[PAGOS] ❌ Error al confirmar pago:', err);
+      this.error.set('Error al confirmar pago: ' + (err.error?.detail || err.message));
+    } finally {
+      this.loading.set(false);
     }
   }
 }
@@ -2809,5 +2808,966 @@ export class GruaViewComponent implements OnInit, OnDestroy {
     } else {
       alert('El gruista no tiene teléfono registrado');
     }
+  }
+}
+
+// ==================== EVALUAR INCIDENTE VIEW (CU6) ====================
+import { EvaluacionesService, Evaluacion, DiagnosticoIAResponse } from '../services/evaluaciones.service';
+
+@Component({
+  selector: 'app-evaluar-incidente-view',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  template: `
+<div style="flex:1;padding:1.5rem;display:flex;flex-direction:column;gap:1.5rem;overflow-y:auto">
+  <!-- Header -->
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <h2>Evaluar Incidentes</h2>
+      <p class="text-sm text-gray-500">Evalúa solicitudes y genera diagnósticos</p>
+    </div>
+    <div style="display:flex;gap:0.75rem">
+      <button class="btn btn-outline" (click)="cargarDatos()">🔄 Actualizar</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats4">
+    <div class="card" style="padding:1rem">
+      <p class="text-sm text-gray-500">Pendientes Evaluación</p>
+      <p class="stat-val">{{ solicitudesPendientes().length }}</p>
+    </div>
+    <div class="card" style="padding:1rem">
+      <p class="text-sm text-gray-500">Evaluaciones Hoy</p>
+      <p class="stat-val">{{ evaluacionesHoy() }}</p>
+    </div>
+    <div class="card" style="padding:1rem">
+      <p class="text-sm text-gray-500">Aprobadas</p>
+      <p class="stat-val">{{ evaluacionesAprobadas() }}</p>
+    </div>
+    <div class="card" style="padding:1rem">
+      <p class="text-sm text-gray-500">Rechazadas</p>
+      <p class="stat-val">{{ evaluacionesRechazadas() }}</p>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tabs-trigger" [class.active]="tab() === 'pendientes'" (click)="tab.set('pendientes')">Pendientes Evaluación</button>
+    <button class="tabs-trigger" [class.active]="tab() === 'evaluadas'" (click)="tab.set('evaluadas')">Evaluadas</button>
+    <button class="tabs-trigger" [class.active]="tab() === 'aprobadas'" (click)="tab.set('aprobadas')">Aprobadas</button>
+    <button class="tabs-trigger" [class.active]="tab() === 'rechazadas'" (click)="tab.set('rechazadas')">Rechazadas</button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading()" style="text-align:center;padding:3rem">
+    <div class="spinner"></div>
+    <p class="text-sm text-gray-500" style="margin-top:1rem">Cargando solicitudes...</p>
+  </div>
+
+  <!-- Lista de Solicitudes -->
+  <div *ngIf="!loading()" style="display:flex;flex-direction:column;gap:1rem">
+    <div *ngFor="let s of solicitudesFiltradas()" class="card" style="padding:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem">
+        <div style="display:flex;gap:0.75rem;align-items:center">
+          <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#22c55e);display:flex;align-items:center;justify-content:center;color:white;font-weight:bold">
+            {{ s.cliente?.nombre?.[0] || '?' }}
+          </div>
+          <div>
+            <h4 style="margin:0">{{ s.cliente?.nombre || 'Cliente' }}</h4>
+            <p class="text-sm text-gray-500">{{ s.vehiculo?.marca }} {{ s.vehiculo?.modelo }} - {{ s.vehiculo?.placa }}</p>
+          </div>
+        </div>
+        <span class="badge" [class]="'badge-' + getEstadoClass(s.estado)">{{ s.estado }}</span>
+      </div>
+
+      <div style="background:#f9fafb;padding:0.75rem;border-radius:0.5rem;margin-bottom:0.75rem">
+        <p class="text-sm" style="margin:0"><strong>Problema:</strong> {{ s.problema || s.descripcion }}</p>
+        <p class="text-xs text-gray-500" style="margin-top:0.5rem">{{ s.descripcion }}</p>
+      </div>
+
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+        <button *ngIf="!s.evaluacion" class="btn btn-primary btn-sm" (click)="abrirEvaluacionModal(s)">
+          🔍 Evaluar
+        </button>
+        <button *ngIf="!s.evaluacion" class="btn btn-outline btn-sm" (click)="generarDiagnosticoIA(s)" [disabled]="generandoIA() === s.id">
+          <span *ngIf="generandoIA() === s.id">⏳ Generando...</span>
+          <span *ngIf="generandoIA() !== s.id">✨ Diagnóstico IA</span>
+        </button>
+        <button *ngIf="s.evaluacion" class="btn btn-outline btn-sm" (click)="verEvaluacion(s.evaluacion)">
+          👁️ Ver Evaluación
+        </button>
+      </div>
+
+      <!-- Mostrar diagnóstico IA si existe -->
+      <div *ngIf="s.diagnosticoIA" style="margin-top:0.75rem;padding:0.75rem;background:#ecfdf5;border:1px solid #6ee7b7;border-radius:0.5rem">
+        <h5 style="margin:0 0 0.5rem 0;color:#047857">🤖 Diagnóstico IA ({{ s.diagnosticoIA.modelo_usado }})</h5>
+        <p class="text-sm" style="margin:0"><strong>Diagnóstico:</strong> {{ s.diagnosticoIA.diagnostico.diagnostico }}</p>
+        <p class="text-sm" style="margin:0.25rem 0 0 0"><strong>Gravedad:</strong> <span [class]="'badge badge-' + s.diagnosticoIA.diagnostico.gravedad">{{ s.diagnosticoIA.diagnostico.gravedad }}</span></p>
+        <p class="text-sm" style="margin:0.25rem 0 0 0"><strong>Tiempo estimado:</strong> {{ s.diagnosticoIA.diagnostico.tiempo_estimado_minutos }} minutos</p>
+        <p class="text-sm" style="margin:0.25rem 0 0 0" *ngIf="s.diagnosticoIA.diagnostico.repuestos_sugeridos?.length"><strong>Repuestos:</strong> {{ s.diagnosticoIA.diagnostico.repuestos_sugeridos.join(', ') }}</p>
+        <button class="btn btn-primary btn-sm" style="margin-top:0.5rem" (click)="usarDiagnosticoIA(s)">Usar este diagnóstico</button>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="solicitudesFiltradas().length === 0" style="text-align:center;padding:3rem">
+      <p class="text-gray-500">No hay solicitudes {{ tab() }}</p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Evaluación -->
+<div *ngIf="showEvalModal()" class="modal-overlay" (click)="cerrarEvalModal()">
+  <div class="card" style="width:100%;max-width:600px;padding:1.5rem;max-height:90vh;overflow-y:auto" (click)="$event.stopPropagation()">
+    <h3 style="margin-bottom:1rem">Evaluar Incidente</h3>
+
+    <div *ngIf="evalError()" style="background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:0.75rem;border-radius:0.5rem;font-size:0.875rem;margin-bottom:1rem">
+      {{ evalError() }}
+    </div>
+
+    <!-- Info de la solicitud -->
+    <div style="background:#f9fafb;padding:0.75rem;border-radius:0.5rem;margin-bottom:1rem">
+      <p class="text-sm" style="margin:0"><strong>Cliente:</strong> {{ solicitudSeleccionada()?.cliente?.nombre }}</p>
+      <p class="text-sm" style="margin:0.25rem 0 0 0"><strong>Vehículo:</strong> {{ solicitudSeleccionada()?.vehiculo?.marca }} {{ solicitudSeleccionada()?.vehiculo?.modelo }}</p>
+      <p class="text-sm" style="margin:0.25rem 0 0 0"><strong>Problema:</strong> {{ solicitudSeleccionada()?.problema }}</p>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:1rem">
+      <div>
+        <label class="label">Diagnóstico *</label>
+        <textarea class="input" [(ngModel)]="evalData.diagnostico" rows="3" placeholder="Describe el diagnóstico del problema..." style="margin-top:0.25rem"></textarea>
+      </div>
+
+      <div>
+        <label class="label">Gravedad *</label>
+        <select class="select" [(ngModel)]="evalData.gravedad" style="margin-top:0.25rem">
+          <option value="baja">🟢 Baja - Mantenimiento o problema menor</option>
+          <option value="media">🟡 Media - Requiere atención pronto</option>
+          <option value="alta">🟠 Alta - Avería importante</option>
+          <option value="critica">🔴 Crítica - Problema de seguridad</option>
+        </select>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div>
+          <label class="label">Tiempo Estimado (min) *</label>
+          <input class="input" type="number" [(ngModel)]="evalData.tiempo_estimado_reparacion" placeholder="Ej: 60" style="margin-top:0.25rem" />
+        </div>
+        <div>
+          <label class="label">Costo Estimado (Bs) *</label>
+          <input class="input" type="number" [(ngModel)]="evalData.costo_estimado" placeholder="Ej: 350" style="margin-top:0.25rem" />
+        </div>
+      </div>
+
+      <div>
+        <label class="label">Repuestos Necesarios</label>
+        <input class="input" [(ngModel)]="repuestosInput" placeholder="Separados por coma: Batería, Aceite, Filtro..." style="margin-top:0.25rem" />
+      </div>
+
+      <div style="display:flex;align-items:center;gap:0.5rem">
+        <input type="checkbox" id="requiereGrua" [(ngModel)]="evalData.requiere_grua" />
+        <label for="requiereGrua" style="margin:0">Requiere servicio de grúa</label>
+      </div>
+
+      <div>
+        <label class="label">Notas Internas</label>
+        <textarea class="input" [(ngModel)]="evalData.notas_internas" rows="2" placeholder="Notas para el mecánico..." style="margin-top:0.25rem"></textarea>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1.5rem">
+      <button class="btn btn-outline" (click)="cerrarEvalModal()">Cancelar</button>
+      <button class="btn btn-primary" (click)="guardarEvaluacion()" [disabled]="evalLoading()">
+        <span *ngIf="evalLoading()">Guardando...</span>
+        <span *ngIf="!evalLoading()">Guardar Evaluación</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Ver Evaluación -->
+<div *ngIf="showVerEvalModal()" class="modal-overlay" (click)="cerrarVerEvalModal()">
+  <div class="card" style="width:100%;max-width:500px;padding:1.5rem;max-height:90vh;overflow-y:auto" (click)="$event.stopPropagation()">
+    <h3 style="margin-bottom:1rem">Evaluación del Incidente</h3>
+
+    <div *ngIf="evaluacionSeleccionada()" style="display:flex;flex-direction:column;gap:0.75rem">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span class="badge" [class]="'badge-' + evaluacionSeleccionada().gravedad">{{ evaluacionSeleccionada().gravedad }}</span>
+        <span class="text-sm text-gray-500">{{ formatFecha(evaluacionSeleccionada().fecha_evaluacion) }}</span>
+      </div>
+
+      <div style="background:#f9fafb;padding:0.75rem;border-radius:0.5rem">
+        <p class="text-sm"><strong>Diagnóstico:</strong></p>
+        <p class="text-sm" style="margin:0">{{ evaluacionSeleccionada().diagnostico }}</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
+        <div class="card" style="padding:0.5rem">
+          <p class="text-xs text-gray-500">Tiempo Estimado</p>
+          <p class="font-medium">{{ evaluacionSeleccionada().tiempo_estimado_reparacion }} min</p>
+        </div>
+        <div class="card" style="padding:0.5rem">
+          <p class="text-xs text-gray-500">Costo Estimado</p>
+          <p class="font-medium">Bs. {{ evaluacionSeleccionada().costo_estimado }}</p>
+        </div>
+      </div>
+
+      <div *ngIf="evaluacionSeleccionada().repuestos_necesarios?.length">
+        <p class="text-sm"><strong>Repuestos:</strong></p>
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem">
+          <span *ngFor="let r of evaluacionSeleccionada().repuestos_necesarios" class="badge badge-outline">{{ r }}</span>
+        </div>
+      </div>
+
+      <div *ngIf="evaluacionSeleccionada().requiere_grua" style="display:flex;align-items:center;gap:0.5rem;color:#dc2626">
+        <span>🚛</span>
+        <span class="text-sm font-medium">Requiere grúa</span>
+      </div>
+
+      <div *ngIf="evaluacionSeleccionada().notas_internas" style="background:#fef3c7;padding:0.75rem;border-radius:0.5rem">
+        <p class="text-sm" style="margin:0"><strong>📝 Notas:</strong> {{ evaluacionSeleccionada().notas_internas }}</p>
+      </div>
+
+      <div style="display:flex;gap:0.75rem;margin-top:1rem">
+        <button *ngIf="evaluacionSeleccionada().estado === 'pendiente'" class="btn btn-primary" style="flex:1" (click)="aprobarEvaluacion(evaluacionSeleccionada().id)" [disabled]="accionLoading()">
+          {{ accionLoading() ? 'Procesando...' : '✓ Aprobar' }}
+        </button>
+        <button *ngIf="evaluacionSeleccionada().estado === 'pendiente'" class="btn btn-outline" style="flex:1;color:#dc2626" (click)="rechazarEvaluacion(evaluacionSeleccionada().id)" [disabled]="accionLoading()">
+          {{ accionLoading() ? 'Procesando...' : '✗ Rechazar' }}
+        </button>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-outline" (click)="cerrarVerEvalModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+`,
+  styles: [`
+    .badge-baja { background:#dcfce7;color:#166534; }
+    .badge-media { background:#fef9c3;color:#854d0e; }
+    .badge-alta { background:#ffedd5;color:#9a3412; }
+    .badge-critica { background:#fee2e2;color:#991b1b; }
+    .badge-pendiente { background:#f3f4f6;color:#374151; }
+    .badge-evaluada { background:#dbeafe;color:#1e40af; }
+    .badge-aprobada { background:#dcfce7;color:#166534; }
+    .badge-rechazada { background:#fee2e2;color:#991b1b; }
+  `]
+})
+export class EvaluarIncidenteViewComponent implements OnInit {
+  private solicitudesService = inject(SolicitudesService);
+  private evaluacionesService = inject(EvaluacionesService);
+  private personalService = inject(PersonalService);
+
+  // Signals
+  solicitudes = signal<Solicitud[]>([]);
+  evaluaciones = signal<Evaluacion[]>([]);
+  loading = signal(false);
+  tab = signal<'pendientes' | 'evaluadas' | 'aprobadas' | 'rechazadas'>('pendientes');
+
+  // Modal states
+  showEvalModal = signal(false);
+  showVerEvalModal = signal(false);
+  evalError = signal<string | null>(null);
+  evalLoading = signal(false);
+  accionLoading = signal(false);
+  generandoIA = signal<string | null>(null);
+
+  solicitudSeleccionada = signal<Solicitud | null>(null);
+  evaluacionSeleccionada = signal<Evaluacion | null>(null);
+
+  // Form data
+  evalData = {
+    diagnostico: '',
+    gravedad: 'media',
+    tiempo_estimado_reparacion: 60,
+    costo_estimado: 0,
+    repuestos_necesarios: [] as string[],
+    requiere_grua: false,
+    notas_internas: ''
+  };
+  repuestosInput = '';
+  currentUserId = 'current-user'; // TODO: Get from auth service
+
+  ngOnInit() {
+    this.cargarDatos();
+  }
+
+  async cargarDatos() {
+    this.loading.set(true);
+    try {
+      // Cargar solicitudes pendientes y evaluaciones
+      const [solicitudesRes, evaluacionesRes] = await Promise.all([
+        this.solicitudesService.listar({ pendientes: true }).toPromise(),
+        this.evaluacionesService.listar().toPromise()
+      ]);
+
+      const solicitudes = solicitudesRes || [];
+      const evaluaciones = evaluacionesRes || [];
+
+      // Enriquecer solicitudes con sus evaluaciones
+      const solicitudesEnriquecidas = solicitudes.map(s => {
+        const evaluacion = evaluaciones.find(e => e.solicitud_id === s.id);
+        return { ...s, evaluacion };
+      });
+
+      this.solicitudes.set(solicitudesEnriquecidas);
+      this.evaluaciones.set(evaluaciones);
+    } catch (e) {
+      console.error('Error cargando datos:', e);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  solicitudesFiltradas() {
+    const evaluaciones = this.evaluaciones();
+
+    switch (this.tab()) {
+      case 'pendientes':
+        return this.solicitudes().filter(s => !evaluaciones.find(e => e.solicitud_id === s.id));
+      case 'evaluadas':
+        return this.solicitudes().filter(s => {
+          const e = evaluaciones.find(ev => ev.solicitud_id === s.id);
+          return e && e.estado === 'pendiente';
+        });
+      case 'aprobadas':
+        return this.solicitudes().filter(s => {
+          const e = evaluaciones.find(ev => ev.solicitud_id === s.id);
+          return e && e.estado === 'aprobada';
+        });
+      case 'rechazadas':
+        return this.solicitudes().filter(s => {
+          const e = evaluaciones.find(ev => ev.solicitud_id === s.id);
+          return e && e.estado === 'rechazada';
+        });
+      default:
+        return this.solicitudes();
+    }
+  }
+
+  solicitudesPendientes() {
+    const evaluaciones = this.evaluaciones();
+    return this.solicitudes().filter(s => !evaluaciones.find(e => e.solicitud_id === s.id));
+  }
+
+  evaluacionesHoy() {
+    const hoy = new Date().toDateString();
+    return this.evaluaciones().filter(e => new Date(e.fecha_evaluacion).toDateString() === hoy).length;
+  }
+
+  evaluacionesAprobadas() {
+    return this.evaluaciones().filter(e => e.estado === 'aprobada').length;
+  }
+
+  evaluacionesRechazadas() {
+    return this.evaluaciones().filter(e => e.estado === 'rechazada').length;
+  }
+
+  getEstadoClass(estado: string): string {
+    const map: Record<string, string> = {
+      'pendiente': 'pending',
+      'aceptada': 'accepted',
+      'en_camino': 'in-progress',
+      'reparando': 'in-progress',
+      'finalizada': 'completed',
+      'rechazada': 'rejected'
+    };
+    return map[estado] || 'pending';
+  }
+
+  abrirEvaluacionModal(solicitud: Solicitud) {
+    this.solicitudSeleccionada.set(solicitud);
+    this.evalData = {
+      diagnostico: '',
+      gravedad: 'media',
+      tiempo_estimado_reparacion: 60,
+      costo_estimado: 0,
+      repuestos_necesarios: [],
+      requiere_grua: false,
+      notas_internas: ''
+    };
+    this.repuestosInput = '';
+    this.evalError.set(null);
+    this.showEvalModal.set(true);
+  }
+
+  cerrarEvalModal() {
+    this.showEvalModal.set(false);
+    this.solicitudSeleccionada.set(null);
+    this.evalError.set(null);
+  }
+
+  async guardarEvaluacion() {
+    const solicitud = this.solicitudSeleccionada();
+    if (!solicitud) return;
+
+    // Validar
+    if (!this.evalData.diagnostico) {
+      this.evalError.set('El diagnóstico es requerido');
+      return;
+    }
+    if (!this.evalData.tiempo_estimado_reparacion || this.evalData.tiempo_estimado_reparacion <= 0) {
+      this.evalError.set('El tiempo estimado debe ser mayor a 0');
+      return;
+    }
+
+    this.evalLoading.set(true);
+    this.evalError.set(null);
+
+    try {
+      // Parsear repuestos
+      const repuestos = this.repuestosInput
+        .split(',')
+        .map(r => r.trim())
+        .filter(r => r.length > 0);
+
+      const evaluacionData = {
+        solicitud_id: solicitud.id,
+        diagnostico: this.evalData.diagnostico,
+        gravedad: this.evalData.gravedad,
+        tiempo_estimado_reparacion: this.evalData.tiempo_estimado_reparacion,
+        costo_estimado: this.evalData.costo_estimado,
+        repuestos_necesarios: repuestos,
+        requiere_grua: this.evalData.requiere_grua,
+        notas_internas: this.evalData.notas_internas,
+        evaluador_id: this.currentUserId
+      };
+
+      await this.evaluacionesService.crear(evaluacionData).toPromise();
+      this.cerrarEvalModal();
+      this.cargarDatos();
+    } catch (e: any) {
+      console.error('Error guardando evaluación:', e);
+      this.evalError.set(e.error?.detail || 'Error al guardar la evaluación');
+    } finally {
+      this.evalLoading.set(false);
+    }
+  }
+
+  async generarDiagnosticoIA(solicitud: Solicitud) {
+    this.generandoIA.set(solicitud.id);
+    try {
+      const resultado = await this.evaluacionesService.generarDiagnosticoIA(solicitud.id).toPromise();
+      if (resultado) {
+        // Agregar diagnóstico a la solicitud
+        const solicitudes = this.solicitudes();
+        const idx = solicitudes.findIndex(s => s.id === solicitud.id);
+        if (idx >= 0) {
+          solicitudes[idx] = { ...solicitudes[idx], diagnosticoIA: resultado };
+          this.solicitudes.set([...solicitudes]);
+        }
+      }
+    } catch (e: any) {
+      console.error('Error generando diagnóstico IA:', e);
+      alert('Error al generar diagnóstico IA: ' + (e.error?.detail || e.message));
+    } finally {
+      this.generandoIA.set(null);
+    }
+  }
+
+  usarDiagnosticoIA(solicitud: Solicitud) {
+    const diagnostico = solicitud.diagnosticoIA?.diagnostico;
+    if (!diagnostico) return;
+
+    this.abrirEvaluacionModal(solicitud);
+    this.evalData.diagnostico = diagnostico.diagnostico;
+    this.evalData.gravedad = diagnostico.gravedad;
+    this.evalData.tiempo_estimado_reparacion = diagnostico.tiempo_estimado_minutos;
+    this.repuestosInput = diagnostico.repuestos_sugeridos?.join(', ') || '';
+    this.evalData.requiere_grua = diagnostico.requiere_grua;
+    this.evalData.notas_internas = diagnostico.notas_tecnico;
+  }
+
+  verEvaluacion(evaluacion: Evaluacion) {
+    this.evaluacionSeleccionada.set(evaluacion);
+    this.showVerEvalModal.set(true);
+  }
+
+  cerrarVerEvalModal() {
+    this.showVerEvalModal.set(false);
+    this.evaluacionSeleccionada.set(null);
+  }
+
+  async aprobarEvaluacion(evaluacionId: string) {
+    this.accionLoading.set(true);
+    try {
+      await this.evaluacionesService.aprobar(evaluacionId).toPromise();
+      this.cerrarVerEvalModal();
+      this.cargarDatos();
+    } catch (e: any) {
+      console.error('Error aprobando evaluación:', e);
+      alert('Error: ' + (e.error?.detail || e.message));
+    } finally {
+      this.accionLoading.set(false);
+    }
+  }
+
+  async rechazarEvaluacion(evaluacionId: string) {
+    this.accionLoading.set(true);
+    try {
+      await this.evaluacionesService.rechazar(evaluacionId).toPromise();
+      this.cerrarVerEvalModal();
+      this.cargarDatos();
+    } catch (e: any) {
+      console.error('Error rechazando evaluación:', e);
+      alert('Error: ' + (e.error?.detail || e.message));
+    } finally {
+      this.accionLoading.set(false);
+    }
+  }
+
+  formatFecha(fecha: string): string {
+    return new Date(fecha).toLocaleString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+}
+
+// Extend Solicitud type to include evaluation and IA diagnosis
+declare module '../models/types.model' {
+  interface Solicitud {
+    evaluacion?: Evaluacion;
+    diagnosticoIA?: DiagnosticoIAResponse;
+  }
+}
+
+// ==================== REPORTES VIEW (CU14) ====================
+import { ReportesService, DashboardData, ReporteSolicitudes, ReportePagos, ReportePersonal, ReporteClientes } from '../services/reportes.service';
+
+@Component({
+  selector: 'app-reportes-view',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  template: `
+<div style="flex:1;padding:1.5rem;display:flex;flex-direction:column;gap:1.5rem;overflow-y:auto">
+  <!-- Header -->
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <h2>📊 Reportes y Estadísticas</h2>
+      <p class="text-sm text-gray-500">Análisis completo del taller</p>
+    </div>
+    <button class="btn btn-outline" (click)="cargarDashboard()">🔄 Actualizar</button>
+  </div>
+
+  <!-- Dashboard Cards -->
+  <div *ngIf="dashboard()" class="stats4">
+    <div class="card" style="padding:1rem;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:white">
+      <p class="text-sm" style="opacity:0.9">Solicitudes Hoy</p>
+      <p style="font-size:2rem;font-weight:bold;margin:0">{{ dashboard()?.solicitudes?.hoy }}</p>
+      <p class="text-sm" style="opacity:0.9">{{ dashboard()?.solicitudes?.mes }} este mes</p>
+    </div>
+    <div class="card" style="padding:1rem;background:linear-gradient(135deg,#22c55e,#15803d);color:white">
+      <p class="text-sm" style="opacity:0.9">Ingresos Hoy</p>
+      <p style="font-size:2rem;font-weight:bold;margin:0">Bs. {{ dashboard()?.finanzas?.ingresos_hoy | number:'1.0-0' }}</p>
+      <p class="text-sm" style="opacity:0.9">Bs. {{ dashboard()?.finanzas?.ingresos_mes | number:'1.0-0' }} este mes</p>
+    </div>
+    <div class="card" style="padding:1rem;background:linear-gradient(135deg,#a855f7,#7c3aed);color:white">
+      <p class="text-sm" style="opacity:0.9">Personal Activo</p>
+      <p style="font-size:2rem;font-weight:bold;margin:0">{{ dashboard()?.personal?.disponibles }}</p>
+      <p class="text-sm" style="opacity:0.9">de {{ dashboard()?.personal?.total }} total</p>
+    </div>
+    <div class="card" style="padding:1rem;background:linear-gradient(135deg,#f59e0b,#d97706);color:white">
+      <p class="text-sm" style="opacity:0.9">Clientes</p>
+      <p style="font-size:2rem;font-weight:bold;margin:0">{{ dashboard()?.clientes?.total }}</p>
+      <p class="text-sm" style="opacity:0.9">registrados</p>
+    </div>
+  </div>
+
+  <!-- Tabs de Reportes -->
+  <div class="tabs">
+    <button class="tabs-trigger" [class.active]="reporteTab() === 'solicitudes'" (click)="cambiarTab('solicitudes')">📋 Solicitudes</button>
+    <button class="tabs-trigger" [class.active]="reporteTab() === 'finanzas'" (click)="cambiarTab('finanzas')">💰 Finanzas</button>
+    <button class="tabs-trigger" [class.active]="reporteTab() === 'personal'" (click)="cambiarTab('personal')">👥 Personal</button>
+    <button class="tabs-trigger" [class.active]="reporteTab() === 'clientes'" (click)="cambiarTab('clientes')">🧑‍💼 Clientes</button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card" style="padding:1rem">
+    <div style="display:flex;gap:1rem;align-items:end;flex-wrap:wrap">
+      <div>
+        <label class="label">Fecha Inicio</label>
+        <input class="input" type="date" [(ngModel)]="filtros.fecha_inicio" style="margin-top:0.25rem" />
+      </div>
+      <div>
+        <label class="label">Fecha Fin</label>
+        <input class="input" type="date" [(ngModel)]="filtros.fecha_fin" style="margin-top:0.25rem" />
+      </div>
+      <div *ngIf="reporteTab() === 'solicitudes'">
+        <label class="label">Estado</label>
+        <select class="select" [(ngModel)]="filtros.estado" style="margin-top:0.25rem">
+          <option value="">Todos</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="aceptada">Aceptada</option>
+          <option value="finalizada">Finalizada</option>
+          <option value="rechazada">Rechazada</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" (click)="generarReporte()" [disabled]="loading()">
+        {{ loading() ? 'Generando...' : 'Generar Reporte' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading()" style="text-align:center;padding:3rem">
+    <div class="spinner"></div>
+    <p class="text-sm text-gray-500" style="margin-top:1rem">Generando reporte...</p>
+  </div>
+
+  <!-- Reporte de Solicitudes -->
+  <div *ngIf="!loading() && reporteTab() === 'solicitudes' && reporteSolicitudes()" class="card" style="padding:1.5rem">
+    <h3 style="margin-bottom:1rem">Reporte de Solicitudes</h3>
+    <p class="text-sm text-gray-500" style="margin-bottom:1rem">Período: {{ reporteSolicitudes()?.periodo }}</p>
+
+    <div class="stats4" style="margin-bottom:1.5rem">
+      <div class="card" style="padding:1rem;text-align:center">
+        <p class="text-2xl font-bold" style="color:#3b82f6">{{ reporteSolicitudes()?.total_registros }}</p>
+        <p class="text-sm text-gray-500">Total Solicitudes</p>
+      </div>
+      <div class="card" style="padding:1rem;text-align:center">
+        <p class="text-2xl font-bold" style="color:#22c55e">Bs. {{ reporteSolicitudes()?.datos?.total_ingresos | number:'1.0-0' }}</p>
+        <p class="text-sm text-gray-500">Ingresos Totales</p>
+      </div>
+      <div class="card" style="padding:1rem;text-align:center">
+        <p class="text-2xl font-bold" style="color:#a855f7">{{ reporteSolicitudes()?.datos?.promedio_distancia | number:'1.1-1' }} km</p>
+        <p class="text-sm text-gray-500">Distancia Promedio</p>
+      </div>
+      <div class="card" style="padding:1rem;text-align:center">
+        <p class="text-2xl font-bold" style="color:#f59e0b">{{ reporteSolicitudes()?.datos?.requirieron_repuestos }}</p>
+        <p class="text-sm text-gray-500">Con Repuestos</p>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+      <div>
+        <h4 style="margin-bottom:0.75rem">Por Estado</h4>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div *ngFor="let item of getEstadosSolicitudes()" style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;background:#f9fafb;border-radius:0.375rem">
+            <span class="text-sm">{{ item.key }}</span>
+            <span class="font-medium">{{ item.value }}</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h4 style="margin-bottom:0.75rem">Por Problema</h4>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div *ngFor="let item of getProblemasSolicitudes()" style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;background:#f9fafb;border-radius:0.375rem">
+            <span class="text-sm">{{ item.key }}</span>
+            <span class="font-medium">{{ item.value }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reporte de Finanzas -->
+  <div *ngIf="!loading() && reporteTab() === 'finanzas' && reportePagos()" class="card" style="padding:1.5rem">
+    <h3 style="margin-bottom:1rem">Reporte de Finanzas</h3>
+    <p class="text-sm text-gray-500" style="margin-bottom:1rem">Período: {{ reportePagos()?.periodo }}</p>
+
+    <div class="stats4" style="margin-bottom:1.5rem">
+      <div class="card" style="padding:1rem;text-align:center">
+        <p class="text-2xl font-bold" style="color:#3b82f6">{{ reportePagos()?.total_registros }}</p>
+        <p class="text-sm text-gray-500">Total Facturas</p>
+      </div>
+      <div class="card" style="padding:1rem;text-align:center">
+        <p class="text-2xl font-bold" style="color:#22c55e">Bs. {{ reportePagos()?.datos?.total_monto | number:'1.0-0' }}</p>
+        <p class="text-sm text-gray-500">Monto Total</p>
+      </div>
+      <div class="card" style="padding:1rem;text-align:center">
+        <p class="text-2xl font-bold" style="color:#a855f7">Bs. {{ reportePagos()?.datos?.total_comisiones | number:'1.0-0' }}</p>
+        <p class="text-sm text-gray-500">Comisiones</p>
+      </div>
+      <div class="card" style="padding:1rem;text-align:center">
+        <p class="text-2xl font-bold" style="color:#f59e0b">Bs. {{ reportePagos()?.datos?.promedio_monto | number:'1.0-0' }}</p>
+        <p class="text-sm text-gray-500">Promedio</p>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+      <div>
+        <h4 style="margin-bottom:0.75rem">Por Método de Pago</h4>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div *ngFor="let item of getMetodosPago()" style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;background:#f9fafb;border-radius:0.375rem">
+            <span class="text-sm capitalize">{{ item.key }}</span>
+            <span class="font-medium">{{ item.value }}</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h4 style="margin-bottom:0.75rem">Estado de Facturas</h4>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;background:#dcfce7;border-radius:0.375rem">
+            <span class="text-sm">✓ Enviadas</span>
+            <span class="font-medium" style="color:#166534">{{ reportePagos()?.datos?.facturas_enviadas }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;background:#fee2e2;border-radius:0.375rem">
+            <span class="text-sm">⏳ Pendientes</span>
+            <span class="font-medium" style="color:#991b1b">{{ reportePagos()?.datos?.facturas_pendientes }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reporte de Personal -->
+  <div *ngIf="!loading() && reporteTab() === 'personal' && reportePersonal()" class="card" style="padding:1.5rem">
+    <h3 style="margin-bottom:1rem">Reporte de Personal</h3>
+    <p class="text-sm text-gray-500" style="margin-bottom:1rem">Período: {{ reportePersonal()?.periodo }}</p>
+
+    <div class="stats4" style="margin-bottom:1.5rem">
+      <div class="card" style="padding:1rem;text-align:center">
+        <p class="text-2xl font-bold" style="color:#3b82f6">{{ reportePersonal()?.total_registros }}</p>
+        <p class="text-sm text-gray-500">Total Personal</p>
+      </div>
+      <div class="card" style="padding:1rem;text-align:center">
+        <p class="text-2xl font-bold" style="color:#22c55e">{{ reportePersonal()?.datos?.personal_activo }}</p>
+        <p class="text-sm text-gray-500">Disponibles</p>
+      </div>
+      <div class="card" style="padding:1rem;text-align:center">
+        <p class="text-2xl font-bold" style="color:#a855f7">{{ reportePersonal()?.datos?.total_asistencias_dia }}</p>
+        <p class="text-sm text-gray-500">Asistencias Hoy</p>
+      </div>
+      <div class="card" style="padding:1rem;text-align:center">
+        <p class="text-2xl font-bold" style="color:#f59e0b">{{ reportePersonal()?.datos?.total_asistencias_mes }}</p>
+        <p class="text-sm text-gray-500">Asistencias Mes</p>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
+      <div>
+        <h4 style="margin-bottom:0.75rem">Por Rol</h4>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div *ngFor="let item of getRolesPersonal()" style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;background:#f9fafb;border-radius:0.375rem">
+            <span class="text-sm capitalize">{{ item.key }}</span>
+            <span class="font-medium">{{ item.value }}</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h4 style="margin-bottom:0.75rem">Por Estado</h4>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <div *ngFor="let item of getEstadosPersonal()" style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;background:#f9fafb;border-radius:0.375rem">
+            <span class="text-sm capitalize">{{ item.key }}</span>
+            <span class="font-medium">{{ item.value }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de Personal -->
+    <h4 style="margin-bottom:0.75rem">Detalle del Personal</h4>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:#f9fafb">
+            <th style="padding:0.75rem;text-align:left;font-size:0.875rem;font-weight:600">Nombre</th>
+            <th style="padding:0.75rem;text-align:left;font-size:0.875rem;font-weight:600">Rol</th>
+            <th style="padding:0.75rem;text-align:center;font-size:0.875rem;font-weight:600">Estado</th>
+            <th style="padding:0.75rem;text-align:center;font-size:0.875rem;font-weight:600">Hoy</th>
+            <th style="padding:0.75rem;text-align:center;font-size:0.875rem;font-weight:600">Mes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of reportePersonal()?.datos?.detalle_personal" style="border-bottom:1px solid #e5e7eb">
+            <td style="padding:0.75rem">{{ p.nombre }}</td>
+            <td style="padding:0.75rem"><span class="badge badge-outline capitalize">{{ p.rol }}</span></td>
+            <td style="padding:0.75rem;text-align:center"><span class="badge" [class]="'badge-' + p.estado">{{ p.estado }}</span></td>
+            <td style="padding:0.75rem;text-align:center">{{ p.asistencias_dia }}</td>
+            <td style="padding:0.75rem;text-align:center">{{ p.asistencias_mes }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Reporte de Clientes -->
+  <div *ngIf="!loading() && reporteTab() === 'clientes' && reporteClientes()" class="card" style="padding:1.5rem">
+    <h3 style="margin-bottom:1rem">Reporte de Clientes</h3>
+    <p class="text-sm text-gray-500" style="margin-bottom:1rem">Período: {{ reporteClientes()?.periodo }}</p>
+
+    <div class="stats4" style="margin-bottom:1.5rem">
+      <div class="card" style="padding:1rem;text-align:center">
+        <p class="text-2xl font-bold" style="color:#3b82f6">{{ reporteClientes()?.datos?.total_clientes }}</p>
+        <p class="text-sm text-gray-500">Total Clientes</p>
+      </div>
+      <div class="card" style="padding:1rem;text-align:center">
+        <p class="text-2xl font-bold" style="color:#22c55e">{{ reporteClientes()?.datos?.nuevos_en_periodo }}</p>
+        <p class="text-sm text-gray-500">Nuevos</p>
+      </div>
+      <div class="card" style="padding:1rem;text-align:center">
+        <p class="text-2xl font-bold" style="color:#a855f7">{{ reporteClientes()?.datos?.clientes_recurrentes }}</p>
+        <p class="text-sm text-gray-500">Recurrentes</p>
+      </div>
+      <div class="card" style="padding:1rem;text-align:center">
+        <p class="text-2xl font-bold" style="color:#f59e0b">{{ reporteClientes()?.datos?.calificacion_promedio_general | number:'1.1-1' }}</p>
+        <p class="text-sm text-gray-500">Calificación</p>
+      </div>
+    </div>
+
+    <div style="background:#f9fafb;padding:1rem;border-radius:0.5rem">
+      <h4 style="margin-bottom:0.75rem">Métricas Adicionales</h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div>
+          <p class="text-sm text-gray-500">Promedio de servicios por cliente</p>
+          <p class="font-medium">{{ reporteClientes()?.datos?.promedio_servicios_por_cliente | number:'1.1-1' }}</p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Clientes con calificación</p>
+          <p class="font-medium">{{ reporteClientes()?.datos?.clientes_con_calificacion }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading() && !tieneReporteActual()" style="text-align:center;padding:3rem">
+    <p class="text-gray-500">Selecciona un tipo de reporte y haz clic en "Generar Reporte"</p>
+  </div>
+</div>
+`,
+  styles: [`
+    .capitalize { text-transform: capitalize; }
+    .badge-disponible { background:#dcfce7;color:#166534; }
+    .badge-ocupado { background:#fee2e2;color:#991b1b; }
+    .badge-en_camino { background:#dbeafe;color:#1e40af; }
+    .badge-regresando { background:#fef3c7;color:#92400e; }
+  `]
+})
+export class ReportesViewComponent implements OnInit {
+  private reportesService = inject(ReportesService);
+
+  // Signals
+  dashboard = signal<DashboardData | null>(null);
+  loading = signal(false);
+  reporteTab = signal<'solicitudes' | 'finanzas' | 'personal' | 'clientes'>('solicitudes');
+
+  // Reportes
+  reporteSolicitudes = signal<ReporteSolicitudes | null>(null);
+  reportePagos = signal<ReportePagos | null>(null);
+  reportePersonal = signal<ReportePersonal | null>(null);
+  reporteClientes = signal<ReporteClientes | null>(null);
+
+  // Filtros
+  filtros = {
+    fecha_inicio: this.getFechaDefaultInicio(),
+    fecha_fin: this.getFechaDefaultFin(),
+    estado: ''
+  };
+
+  ngOnInit() {
+    this.cargarDashboard();
+    this.generarReporte();
+  }
+
+  getFechaDefaultInicio(): string {
+    const fecha = new Date();
+    fecha.setDate(fecha.getDate() - 30);
+    return fecha.toISOString().split('T')[0];
+  }
+
+  getFechaDefaultFin(): string {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  async cargarDashboard() {
+    try {
+      const data = await this.reportesService.getDashboard().toPromise();
+      this.dashboard.set(data || null);
+    } catch (e) {
+      console.error('Error cargando dashboard:', e);
+    }
+  }
+
+  cambiarTab(tab: 'solicitudes' | 'finanzas' | 'personal' | 'clientes') {
+    this.reporteTab.set(tab);
+    this.limpiarReporteActual();
+    this.generarReporte();
+  }
+
+  limpiarReporteActual() {
+    this.reporteSolicitudes.set(null);
+    this.reportePagos.set(null);
+    this.reportePersonal.set(null);
+    this.reporteClientes.set(null);
+  }
+
+  tieneReporteActual(): boolean {
+    switch (this.reporteTab()) {
+      case 'solicitudes': return !!this.reporteSolicitudes();
+      case 'finanzas': return !!this.reportePagos();
+      case 'personal': return !!this.reportePersonal();
+      case 'clientes': return !!this.reporteClientes();
+      default: return false;
+    }
+  }
+
+  async generarReporte() {
+    this.loading.set(true);
+    this.limpiarReporteActual();
+
+    try {
+      const filtros = {
+        fecha_inicio: this.filtros.fecha_inicio,
+        fecha_fin: this.filtros.fecha_fin,
+        estado: this.filtros.estado || undefined
+      };
+
+      switch (this.reporteTab()) {
+        case 'solicitudes':
+          const rs = await this.reportesService.getReporteSolicitudes(filtros).toPromise();
+          this.reporteSolicitudes.set(rs || null);
+          break;
+        case 'finanzas':
+          const rp = await this.reportesService.getReportePagos(filtros).toPromise();
+          this.reportePagos.set(rp || null);
+          break;
+        case 'personal':
+          const rper = await this.reportesService.getReportePersonal(filtros).toPromise();
+          this.reportePersonal.set(rper || null);
+          break;
+        case 'clientes':
+          const rc = await this.reportesService.getReporteClientes(filtros).toPromise();
+          this.reporteClientes.set(rc || null);
+          break;
+      }
+    } catch (e) {
+      console.error('Error generando reporte:', e);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  // Helper methods para templates
+  getEstadosSolicitudes(): { key: string; value: number }[] {
+    const datos = this.reporteSolicitudes()?.datos?.por_estado;
+    return datos ? Object.entries(datos).map(([key, value]) => ({ key, value })) : [];
+  }
+
+  getProblemasSolicitudes(): { key: string; value: number }[] {
+    const datos = this.reporteSolicitudes()?.datos?.por_problema;
+    return datos ? Object.entries(datos).map(([key, value]) => ({ key, value })) : [];
+  }
+
+  getMetodosPago(): { key: string; value: number }[] {
+    const datos = this.reportePagos()?.datos?.por_metodo;
+    return datos ? Object.entries(datos).map(([key, value]) => ({ key, value })) : [];
+  }
+
+  getRolesPersonal(): { key: string; value: number }[] {
+    const datos = this.reportePersonal()?.datos?.por_rol;
+    return datos ? Object.entries(datos).map(([key, value]) => ({ key, value })) : [];
+  }
+
+  getEstadosPersonal(): { key: string; value: number }[] {
+    const datos = this.reportePersonal()?.datos?.por_estado;
+    return datos ? Object.entries(datos).map(([key, value]) => ({ key, value })) : [];
   }
 }
