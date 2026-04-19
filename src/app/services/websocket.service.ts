@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Subject, Observable, BehaviorSubject } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
+import { environment } from '../environment/environment';
 
 export interface WebSocketMessage {
   type: string;
@@ -22,14 +23,21 @@ export class WebSocketService {
   private currentRoom: string | null = null;
   private heartbeatInterval: any = null;
 
-  // API URL - ajustar según configuración
-  private readonly baseUrl = 'ws://localhost:8000/ws';
+  // API URL - usa environment y detecta protocolo (ws:// vs wss://)
+  private readonly baseUrl = this.getWebSocketUrl();
 
   // Observables públicos
   public messages$: Observable<WebSocketMessage> = this.messageSubject.asObservable();
   public connected$: Observable<boolean> = this.connectionStatus.asObservable();
 
   constructor() {}
+
+  private getWebSocketUrl(): string {
+    const apiUrl = environment.apiUrl;
+    // Convertir https:// a wss:// o http:// a ws://
+    const wsUrl = apiUrl.replace(/^https/, 'wss').replace(/^http/, 'ws');
+    return `${wsUrl}/ws`;
+  }
 
   /**
    * Conectar al WebSocket
