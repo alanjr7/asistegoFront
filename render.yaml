@@ -1,0 +1,13 @@
+services:
+  - type: static
+    name: asistego-front
+    runtime: static
+    buildCommand: npm install && npm run build
+    publish: dist/asistego-angular/browser
+    routes:
+      - type: rewrite
+        source: /
+        destination: /index.html
+      - type: rewrite
+        source: /(.*)
+        destination: /index.html
