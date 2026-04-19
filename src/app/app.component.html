@@ -3,15 +3,15 @@
 <app-register-view *ngIf="!state.isAuthenticated() && state.currentView() === 'register'"></app-register-view>
 
 <!-- App principal -->
-<div *ngIf="state.isAuthenticated()" class="app-shell">
+<div *ngIf="state.isAuthenticated()" class="h-screen flex bg-gray-50 overflow-hidden">
   <!-- Sidebar -->
   <app-sidebar></app-sidebar>
 
   <!-- Contenido principal -->
-  <div class="main-area">
+  <div class="flex-1 flex flex-col overflow-hidden min-w-0">
     <app-topbar></app-topbar>
 
-    <div class="content-area">
+    <div class="flex-1 overflow-auto flex flex-col">
       <app-dashboard-view    *ngIf="state.currentView() === 'dashboard'"></app-dashboard-view>
       <app-seguimiento-view  *ngIf="state.currentView() === 'seguimiento'"></app-seguimiento-view>
       <app-chat-view         *ngIf="state.currentView() === 'chat'"></app-chat-view>

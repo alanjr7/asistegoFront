@@ -262,10 +262,10 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
     if (!s) return null;
 
     const estados: Record<string, { estado: string; label: string; icon: string }> = {
-      'pendiente': { estado: 'aceptada', label: 'Aceptar Solicitud', icon: '✓' },
-      'aceptada': { estado: 'en_camino', label: 'Marcar En Camino', icon: '🚗' },
-      'en_camino': { estado: 'reparando', label: 'Iniciar Reparación', icon: '🔧' },
-      'reparando': { estado: 'finalizada', label: 'Finalizar Servicio', icon: '✅' }
+      'pendiente': { estado: 'aceptada', label: 'Aceptar Solicitud', icon: 'check' },
+      'aceptada': { estado: 'en_camino', label: 'Marcar En Camino', icon: 'car' },
+      'en_camino': { estado: 'reparando', label: 'Iniciar Reparación', icon: 'wrench' },
+      'reparando': { estado: 'finalizada', label: 'Finalizar Servicio', icon: 'check-circle' }
     };
 
     return estados[s.estado] || null;
@@ -273,10 +273,10 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
 
   get timelineEstados() {
     return [
-      { key: 'aceptada', label: 'Asignado', icon: '✓' },
-      { key: 'en_camino', label: 'En Camino', icon: '🚗' },
-      { key: 'reparando', label: 'Llegada', icon: '📍' },
-      { key: 'finalizada', label: 'Reparando', icon: '🔧' }
+      { key: 'aceptada', label: 'Asignado', icon: 'check' },
+      { key: 'en_camino', label: 'En Camino', icon: 'car' },
+      { key: 'reparando', label: 'Llegada', icon: 'map-pin' },
+      { key: 'finalizada', label: 'Reparando', icon: 'wrench' }
     ];
   }
 
@@ -376,11 +376,11 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
 
   getMetodoPagoIcon(metodo: string): string {
     const icons: Record<string, string> = {
-      'qr': '📱',
-      'tarjeta': '💳',
-      'efectivo': '💵'
+      'qr': 'QR',
+      'tarjeta': 'Tarjeta',
+      'efectivo': 'Efectivo'
     };
-    return icons[metodo] || '💰';
+    return icons[metodo] || metodo || 'Efectivo';
   }
 
   getEstadoColor(estado: string): string {

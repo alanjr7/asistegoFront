@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AppStateService } from '../../services/app-state.service';
 import { MockDataService } from '../../services/mock-data.service';
+import { ChatService } from '../../services/chat.service';
 import { Calificacion } from '../../models/types.model';
 
 // ==================== IA WIDGET ====================
@@ -26,12 +27,15 @@ import { Calificacion } from '../../models/types.model';
       </div>
     </div>
     <div class="ia-input">
-      <input class="input" [(ngModel)]="query" placeholder="Pregunta al asistente..." (keydown.enter)="send()" style="font-size:0.875rem" />
-      <button class="btn btn-primary btn-icon" (click)="send()">➤</button>
+      <input class="input" [(ngModel)]="query" placeholder="Pregunta al asistente..." (keydown.enter)="send()" style="font-size:0.875rem" [disabled]="loading()" />
+      <button class="btn btn-primary btn-icon" (click)="send()" [disabled]="loading()">
+        <svg *ngIf="!loading()" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        <svg *ngIf="loading()" class="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      </button>
     </div>
   </div>
-  <button class="ia-fab bg-gradient-to-br-blue-green" (click)="open.set(!open())" title="Asistente IA">
-    ✨
+  <button class="ia-fab bg-gradient-to-br from-blue-600 to-green-500" (click)="open.set(!open())" title="Asistente IA">
+    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
   </button>
 </div>`,
   styles: [`
@@ -51,24 +55,31 @@ import { Calificacion } from '../../models/types.model';
 })
 export class IAWidgetComponent {
   state = inject(AppStateService);
+  chatService = inject(ChatService);
   open = signal(false);
   query = '';
+  loading = signal(false);
   messages = signal<{role: 'user'|'ai', content: string}[]>([
     { role: 'ai', content: '¡Hola! Soy tu asistente IA. ¿En qué puedo ayudarte?' }
   ]);
 
-  send() {
-    if (!this.query.trim()) return;
+  async send() {
+    if (!this.query.trim() || this.loading()) return;
+    
     const q = this.query;
-    this.messages.update(m => [...m, { role: 'user', content: q }]);
     this.query = '';
-    setTimeout(() => {
-      const view = this.state.currentView();
-      let resp = 'Puedo ayudarte con diagnósticos, repuestos y gestión del taller.';
-      if (view === 'seguimiento') resp = '🔧 Para diagnóstico: revisa los códigos OBD-II, inspecciona visualmente y documenta el problema con fotos.';
-      if (view === 'repuestos') resp = '📦 Para repuestos: verifica compatibilidad por marca/modelo y consulta disponibilidad en tu inventario.';
-      this.messages.update(m => [...m, { role: 'ai', content: resp }]);
-    }, 800);
+    this.loading.set(true);
+    this.messages.update(m => [...m, { role: 'user', content: q }]);
+    
+    try {
+      const response = await this.chatService.consultarIA(q).toPromise();
+      this.messages.update(m => [...m, { role: 'ai', content: response?.respuesta || 'Lo siento, no pude procesar tu consulta.' }]);
+    } catch (err: any) {
+      const errorMsg = err.error?.detail || 'Error al consultar la IA. Por favor, intenta de nuevo.';
+      this.messages.update(m => [...m, { role: 'ai', content: `Error: ${errorMsg}` }]);
+    } finally {
+      this.loading.set(false);
+    }
   }
 }
 
@@ -95,7 +106,8 @@ export class IAWidgetComponent {
           <button *ngFor="let i of [1,2,3,4,5]" (click)="estrellas.set(i)"
             style="background:none;border:none;cursor:pointer;font-size:2rem;transition:transform 0.1s"
             [style.transform]="i <= estrellas() ? 'scale(1.15)' : 'scale(1)'">
-            {{ i <= estrellas() ? '⭐' : '☆' }}
+            <svg *ngIf="i <= estrellas()" class="w-8 h-8 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            <svg *ngIf="i > estrellas()" class="w-8 h-8 text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
           </button>
         </div>
       </div>
@@ -115,8 +127,8 @@ export class IAWidgetComponent {
 
       <div style="display:flex;gap:0.75rem">
         <button class="btn btn-outline" style="flex:1" (click)="state.cerrarCalificacion()">Cancelar</button>
-        <button class="btn btn-primary" style="flex:1" (click)="enviar()">
-          ⭐ Enviar Solicitud
+        <button class="btn btn-primary flex items-center justify-center gap-2" style="flex:1" (click)="enviar()">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg> Enviar Solicitud
         </button>
       </div>
     </div>

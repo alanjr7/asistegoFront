@@ -262,7 +262,7 @@ export class ChatViewComponent implements OnInit {
       <div class="seg-map-section">
         <div class="card seg-map-card">
           <div id="seg-map-pendiente" class="leaflet-map"></div>
-          <div class="distance-badge card">📍 {{ pendiente.distancia }} km de distancia</div>
+          <div class="distance-badge card" style="display:flex;align-items:center;gap:0.25rem"><svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> {{ pendiente.distancia }} km de distancia</div>
         </div>
       </div>
 
@@ -277,24 +277,24 @@ export class ChatViewComponent implements OnInit {
               <p class="text-sm text-gray-500">{{ pendiente.distancia }} km • {{ pendiente.cliente.telefono }}</p>
             </div>
           </div>
-          <button class="btn btn-outline" style="width:100%">
-            📞 Llamar al cliente
+          <button class="btn btn-outline" style="width:100%;display:flex;align-items:center;justify-content:center;gap:0.5rem">
+            <svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Llamar al cliente
           </button>
         </div>
 
         <!-- Vehículo -->
         <div class="card" style="padding:1rem">
-          <h3 class="text-sm text-gray-500" style="margin-bottom:0.5rem">🚗 Vehículo</h3>
+          <h3 class="text-sm text-gray-500" style="margin-bottom:0.5rem;display:flex;align-items:center;gap:0.25rem"><svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg> Vehículo</h3>
           <p class="font-medium text-gray-900">{{ pendiente.vehiculo.marca }} {{ pendiente.vehiculo.modelo }} {{ pendiente.vehiculo.anio }}</p>
           <span class="badge badge-outline" style="margin-top:0.5rem">{{ pendiente.vehiculo.placa }}</span>
         </div>
 
         <!-- Problema -->
         <div class="card" style="padding:1rem">
-          <h3 class="text-sm text-gray-500" style="margin-bottom:0.5rem">⚠️ Problema reportado</h3>
+          <h3 class="text-sm text-gray-500" style="margin-bottom:0.5rem;display:flex;align-items:center;gap:0.25rem"><svg style="width:16px;height:16px;color:#f59e0b" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Problema reportado</h3>
           <p class="text-gray-900">{{ pendiente.descripcion }}</p>
           <span *ngIf="pendiente.requiereRepuestos" class="badge badge-secondary" style="margin-top:0.5rem">Requiere repuestos</span>
-          <span *ngIf="pendiente.tipo === 'grua'" class="badge badge-red" style="margin-top:0.5rem">🚨 Servicio de Grúa</span>
+          <span *ngIf="pendiente.tipo === 'grua'" class="badge badge-red" style="margin-top:0.5rem;display:flex;align-items:center;gap:0.25rem"><svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 11v6h1M3 16h.01"/></svg> Servicio de Grúa</span>
         </div>
 
         <!-- Imágenes -->
@@ -431,10 +431,10 @@ export class ChatViewComponent implements OnInit {
     <!-- Header -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
       <div>
-        <h2>📍 Seguimiento de Servicios</h2>
+        <h2 style="display:flex;align-items:center;gap:0.5rem"><svg style="width:24px;height:24px;color:#2563eb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Seguimiento de Servicios</h2>
         <p class="text-sm text-gray-500">Gestiona todas las solicitudes activas</p>
       </div>
-      <button class="btn btn-primary" (click)="cargarSolicitudesActivas()">🔄 Actualizar</button>
+      <button class="btn btn-primary" (click)="cargarSolicitudesActivas()" style="display:flex;align-items:center;gap:0.5rem"><svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Actualizar</button>
     </div>
 
     <!-- Loading -->
@@ -445,7 +445,7 @@ export class ChatViewComponent implements OnInit {
 
   <!-- Sin solicitudes -->
   <div *ngIf="!loading() && solicitudesActivas().length === 0" class="empty-state">
-    <div class="empty-icon">🚗</div>
+    <div class="empty-icon"><svg style="width:64px;height:64px;color:#d1d5db" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-2c0-.6-.4-1-1-1h-2c-.6 0-1 .4-1 1v2c0 .6.4 1 1 1z"/><path d="M5 17H3c-.6 0-1-.4-1-1v-2c0-.6.4-1 1-1h2c.6 0 1 .4 1 1v2c0 .6-.4 1-1 1z"/><path d="M16 3H8C6 3 5 4 5 6v12c0 2 1 3 3 3h8c2 0 3-1 3-3V6c0-2-1-3-3-3z"/><path d="M5 9h14"/></svg></div>
     <h3>No hay servicios activos</h3>
     <p class="text-sm text-gray-500">Acepta solicitudes desde el Dashboard</p>
     <button class="btn btn-primary" style="margin-top:1rem" (click)="state.navigateTo('dashboard')">
@@ -486,7 +486,7 @@ export class ChatViewComponent implements OnInit {
       <div class="seg-map-section">
         <div class="card seg-map-card">
           <div id="seg-map" class="leaflet-map"></div>
-          <div *ngIf="hasLlegado" class="llegada-msg card">📍 Mecánico en ubicación</div>
+          <div *ngIf="hasLlegado" class="llegada-msg card" style="display:flex;align-items:center;gap:0.25rem"><svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Mecánico en ubicación</div>
         </div>
       </div>
 
@@ -503,24 +503,24 @@ export class ChatViewComponent implements OnInit {
                 <p class="text-xs text-gray-400" style="font-family:monospace">ID: {{ solicitudSeleccionada()!.id.substring(0,8) }}...</p>
               </div>
             </div>
-            <button class="btn btn-outline btn-sm" (click)="state.navigateTo('chat')">💬</button>
+            <button class="btn btn-outline btn-sm" (click)="state.navigateTo('chat')" style="display:flex;align-items:center;gap:0.25rem"><svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
           </div>
           <div class="text-sm" style="display:flex;flex-direction:column;gap:0.5rem">
             <div style="display:flex;align-items:center;gap:0.5rem">
-              🚗 <span>{{ solicitudSeleccionada()!.vehiculo.marca }} {{ solicitudSeleccionada()!.vehiculo.modelo }}</span>
+              <svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg> <span>{{ solicitudSeleccionada()!.vehiculo.marca }} {{ solicitudSeleccionada()!.vehiculo.modelo }}</span>
             </div>
             <div style="display:flex;align-items:center;gap:0.5rem;color:#6b7280">
-              📍 <span>{{ solicitudSeleccionada()!.cliente.lat.toFixed(4) }}, {{ solicitudSeleccionada()!.cliente.lng.toFixed(4) }}</span>
+              <svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> <span>{{ solicitudSeleccionada()!.cliente.lat.toFixed(4) }}, {{ solicitudSeleccionada()!.cliente.lng.toFixed(4) }}</span>
             </div>
           </div>
-          <button class="btn btn-outline" style="width:100%;margin-top:1rem">
-            📞 {{ solicitudSeleccionada()!.cliente.telefono }}
+          <button class="btn btn-outline" style="width:100%;margin-top:1rem;display:flex;align-items:center;justify-content:center;gap:0.5rem">
+            <svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> {{ solicitudSeleccionada()!.cliente.telefono }}
           </button>
         </div>
 
         <!-- Estados -->
         <div class="card" style="padding:1rem">
-          <h3 class="text-sm text-gray-500" style="margin-bottom:1rem">📋 Control de Estados</h3>
+          <h3 class="text-sm text-gray-500" style="margin-bottom:1rem;display:flex;align-items:center;gap:0.25rem"><svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg> Control de Estados</h3>
           <div style="display:flex;flex-direction:column;gap:0.75rem">
             <button *ngFor="let est of estados; let i = index"
               (click)="cambiarEstado(est.id, i)"
@@ -643,10 +643,10 @@ export class SeguimientoViewComponent implements OnInit, OnDestroy {
   personalDisponibles = signal<Personal[]>([]);
 
   estados = [
-    { id: 'aceptada', label: 'Aceptada', emoji: '✓' },
-    { id: 'en_camino', label: 'En camino', emoji: '🚗' },
-    { id: 'reparando', label: 'Reparando', emoji: '🔧' },
-    { id: 'finalizada', label: 'Finalizada', emoji: '✅' },
+    { id: 'aceptada', label: 'Aceptada', icon: 'check' },
+    { id: 'en_camino', label: 'En camino', icon: 'car' },
+    { id: 'reparando', label: 'Reparando', icon: 'wrench' },
+    { id: 'finalizada', label: 'Finalizada', icon: 'check-circle' },
   ];
 
   get hasLlegado() { return this.estadoActual() === 'reparando' || this.estadoActual() === 'finalizada'; }
@@ -889,7 +889,11 @@ export class SeguimientoViewComponent implements OnInit, OnDestroy {
   <div class="stats3">
     <div *ngFor="let s of resumen" class="card" style="padding:1rem">
       <div style="display:flex;align-items:center;gap:0.75rem">
-        <div class="stat-icon" [style.background]="s.bg">{{ s.icon }}</div>
+        <div class="stat-icon" [style.background]="s.bg" style="display:flex;align-items:center;justify-content:center">
+          <svg *ngIf="s.icon === 'qr'" style="width:20px;height:20px;color:#16a34a" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <svg *ngIf="s.icon === 'card'" style="width:20px;height:20px;color:#2563eb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          <svg *ngIf="s.icon === 'money'" style="width:20px;height:20px;color:white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
         <div>
           <p class="text-sm text-gray-500">{{ s.label }}</p>
           <p class="font-medium text-gray-900">Bs. {{ s.monto.toFixed(2) }}</p>
@@ -936,8 +940,9 @@ export class SeguimientoViewComponent implements OnInit, OnDestroy {
         <div class="resumen-row"><span>Comisión (10%):</span><span>Bs. {{ (+monto * 0.1).toFixed(2) }}</span></div>
         <hr class="separator" /><div class="resumen-row font-medium"><span>Total a cobrar:</span><span>Bs. {{ (+monto * 1.1).toFixed(2) }}</span></div>
       </div>
-      <button class="btn btn-primary" style="width:100%" [disabled]="!monto || loading()" (click)="confirmarPago()">
-        {{ loading() ? 'Procesando...' : '💰 Confirmar Monto y Solicitar Pago' }}
+      <button class="btn btn-primary" style="width:100%;display:flex;align-items:center;justify-content:center;gap:0.5rem" [disabled]="!monto || loading()" (click)="confirmarPago()">
+        <svg *ngIf="!loading()" style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        {{ loading() ? 'Procesando...' : 'Confirmar Monto y Solicitar Pago' }}
       </button>
       @if (error()) {
         <div style="margin-top:0.5rem;padding:0.75rem;background:#fef2f2;border:1px solid #fecaca;border-radius:0.5rem;color:#dc2626;font-size:0.875rem">
@@ -947,7 +952,7 @@ export class SeguimientoViewComponent implements OnInit, OnDestroy {
     </div>
     <ng-template #noServicio>
       <div class="card empty-state-card">
-        <div style="font-size:3rem;opacity:0.3;margin-bottom:1rem">💰</div>
+        <div style="font-size:3rem;opacity:0.3;margin-bottom:1rem;display:flex;justify-content:center"><svg style="width:64px;height:64px;color:#d1d5db" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
         <h3>No hay servicio activo</h3>
         <p class="text-sm text-gray-500">Los pagos se confirman después de finalizar un servicio</p>
       </div>
@@ -1073,9 +1078,9 @@ export class PagosViewComponent implements OnInit {
   get resumen() {
     const facturas = this.facturas();
     return [
-      { icon: '📱', label: 'Pagos por QR', bg: '#dcfce7', monto: facturas.filter(f => f.metodoPago === 'qr').reduce((s, f) => s + f.monto, 0) },
-      { icon: '💳', label: 'Pagos con Tarjeta', bg: '#dbeafe', monto: facturas.filter(f => f.metodoPago === 'tarjeta').reduce((s, f) => s + f.monto, 0) },
-      { icon: '💰', label: 'Ingresos Totales del Día', bg: 'linear-gradient(135deg,#2563eb,#22c55e)', monto: facturas.reduce((s, f) => s + f.monto, 0) },
+      { icon: 'qr', label: 'Pagos por QR', bg: '#dcfce7', color: '#16a34a', monto: facturas.filter(f => f.metodoPago === 'qr').reduce((s, f) => s + f.monto, 0) },
+      { icon: 'card', label: 'Pagos con Tarjeta', bg: '#dbeafe', color: '#2563eb', monto: facturas.filter(f => f.metodoPago === 'tarjeta').reduce((s, f) => s + f.monto, 0) },
+      { icon: 'money', label: 'Ingresos Totales del Día', bg: 'linear-gradient(135deg,#2563eb,#22c55e)', color: 'white', monto: facturas.reduce((s, f) => s + f.monto, 0) },
     ];
   }
 
@@ -1119,7 +1124,15 @@ export class PagosViewComponent implements OnInit {
 <div class="view-padded">
   <div style="display:flex;align-items:center;justify-content:space-between">
     <div><h2>Marketplace de Repuestos</h2><p class="text-sm text-gray-500">Gestiona tu inventario y solicitudes de clientes</p></div>
-    <button class="btn btn-primary">+ Agregar Repuesto</button>
+    <button class="btn btn-primary" (click)="abrirModalCrear()">+ Agregar Repuesto</button>
+  </div>
+
+  <!-- Loading y Error -->
+  <div *ngIf="loading()" class="card" style="padding:1rem;text-align:center">
+    <span>Cargando repuestos...</span>
+  </div>
+  <div *ngIf="error()" class="card" style="padding:1rem;background:#fef2f2;border-color:#fecaca;color:#dc2626">
+    {{ error() }}
   </div>
 
   <div class="tabs-list">
@@ -1160,18 +1173,28 @@ export class PagosViewComponent implements OnInit {
             </span>
           </div>
           <p class="text-sm text-gray-600" style="margin-bottom:0.75rem">{{ r.descripcion }}</p>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem">
             <span class="font-medium text-gray-900">Bs. {{ r.precio }}</span>
+            <span class="text-xs text-gray-500">Stock: {{ r.stock || 0 }}</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
             <span class="text-xs text-gray-500">{{ r.marca }}</span>
           </div>
           <div style="display:flex;gap:0.5rem">
-            <button class="btn btn-outline btn-sm" style="flex:1">Editar</button>
-            <button class="btn btn-outline btn-sm" style="flex:1" [disabled]="false">
-              {{ r.disponible ? 'Marcar agotado' : 'Marcar disponible' }}
+            <button class="btn btn-outline btn-sm" style="flex:1" (click)="abrirModalEditar(r)">✏️ Editar</button>
+            <button class="btn btn-outline btn-sm" style="flex:1" (click)="toggleDisponibilidad(r)">
+              {{ r.disponible ? '🔴 Desactivar' : '🟢 Activar' }}
             </button>
+            <button class="btn btn-outline btn-sm text-red-600" style="flex:1" (click)="eliminarRepuesto(r)">🗑️</button>
           </div>
         </div>
       </div>
+    </div>
+
+    <div *ngIf="repuestosFiltrados.length === 0 && !loading()" class="card" style="padding:3rem;text-align:center">
+      <div style="font-size:3rem;margin-bottom:1rem">📦</div>
+      <h3>No hay repuestos</h3>
+      <p class="text-sm text-gray-500">Agrega tu primer repuesto al inventario</p>
     </div>
   </ng-container>
 
@@ -1204,6 +1227,79 @@ export class PagosViewComponent implements OnInit {
       </ng-container>
     </div>
   </ng-container>
+</div>
+
+<!-- Modal CRUD Repuesto -->
+<div *ngIf="showModal()" class="modal-overlay" (click)="cerrarModal()">
+  <div class="card modal-card" (click)="$event.stopPropagation()" style="width:500px;max-width:90vw;max-height:90vh;overflow-y:auto">
+    <div style="padding:1.5rem">
+      <h3 style="margin-bottom:1rem">{{ modoModal() === 'crear' ? 'Agregar Repuesto' : 'Editar Repuesto' }}</h3>
+      
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div>
+          <label class="label">Nombre *</label>
+          <input class="input" [(ngModel)]="repuestoForm.nombre" placeholder="Ej: Batería 12V" />
+        </div>
+        <div>
+          <label class="label">Descripción</label>
+          <textarea class="input" [(ngModel)]="repuestoForm.descripcion" rows="3" placeholder="Descripción del repuesto..."></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div>
+            <label class="label">Precio (Bs.) *</label>
+            <input class="input" type="number" [(ngModel)]="repuestoForm.precio" placeholder="0.00" min="0" step="0.01" />
+          </div>
+          <div>
+            <label class="label">Stock *</label>
+            <input class="input" type="number" [(ngModel)]="repuestoForm.stock" placeholder="0" min="0" />
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div>
+            <label class="label">Categoría *</label>
+            <select class="select" [(ngModel)]="repuestoForm.categoria" style="width:100%">
+              <option value="">Seleccionar...</option>
+              <option value="Motor">Motor</option>
+              <option value="Frenos">Frenos</option>
+              <option value="Suspensión">Suspensión</option>
+              <option value="Eléctrico">Eléctrico</option>
+              <option value="Transmisión">Transmisión</option>
+              <option value="Carrocería">Carrocería</option>
+              <option value="Accesorios">Accesorios</option>
+              <option value="Otros">Otros</option>
+            </select>
+          </div>
+          <div>
+            <label class="label">Marca</label>
+            <input class="input" [(ngModel)]="repuestoForm.marca" placeholder="Ej: Bosch, Denso..." />
+          </div>
+        </div>
+        <div>
+          <label class="label">URL de Imagen</label>
+          <input class="input" [(ngModel)]="repuestoForm.imagen" placeholder="https://..." />
+        </div>
+        <div>
+          <label class="label">Vehículos Compatibles (separados por coma)</label>
+          <input class="input" [(ngModel)]="repuestoForm.vehiculosCompatibles" placeholder="Toyota, Honda, Nissan..." />
+        </div>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <input type="checkbox" id="disponible" [(ngModel)]="repuestoForm.disponible" />
+          <label for="disponible" style="cursor:pointer">Disponible para venta</label>
+        </div>
+      </div>
+
+      <div *ngIf="modalError()" style="margin-top:1rem;padding:0.75rem;background:#fef2f2;border:1px solid #fecaca;border-radius:0.5rem;color:#dc2626;font-size:0.875rem">
+        {{ modalError() }}
+      </div>
+
+      <div style="display:flex;gap:0.75rem;margin-top:1.5rem">
+        <button class="btn btn-outline" style="flex:1" (click)="cerrarModal()">Cancelar</button>
+        <button class="btn btn-primary" style="flex:1" [disabled]="guardando()" (click)="guardarRepuesto()">
+          {{ guardando() ? 'Guardando...' : (modoModal() === 'crear' ? 'Crear Repuesto' : 'Guardar Cambios') }}
+        </button>
+      </div>
+    </div>
+  </div>
 </div>`,
   styles: [`
 .view-padded { flex:1; padding:1.5rem; display:flex; flex-direction:column; gap:1.5rem; overflow-y:auto; }
@@ -1212,6 +1308,11 @@ export class PagosViewComponent implements OnInit {
 .rep-img { width:100%; height:192px; object-fit:cover; }
 .rep-placeholder { width:100%; height:192px; background:#f3f4f6; display:flex; align-items:center; justify-content:center; font-size:4rem; }
 .badge-yellow { background:#eab308; color:white; }
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000; padding:1rem; }
+.modal-card { animation:modalIn 0.2s ease-out; }
+@keyframes modalIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
+.text-red-600 { color:#dc2626; }
+.label { display:block; font-size:0.875rem; font-weight:500; color:#374151; margin-bottom:0.375rem; }
   `]
 })
 export class RepuestosViewComponent implements OnInit {
@@ -1224,6 +1325,25 @@ export class RepuestosViewComponent implements OnInit {
   repuestos = signal<Repuesto[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
+
+  // Modal state
+  showModal = signal(false);
+  modoModal = signal<'crear' | 'editar'>('crear');
+  guardando = signal(false);
+  modalError = signal<string | null>(null);
+  repuestoEditando: Repuesto | null = null;
+
+  repuestoForm = {
+    nombre: '',
+    descripcion: '',
+    precio: 0,
+    stock: 0,
+    categoria: '',
+    marca: '',
+    imagen: '',
+    disponible: true,
+    vehiculosCompatibles: ''
+  };
 
   ngOnInit() {
     this.cargarRepuestos();
@@ -1251,10 +1371,130 @@ export class RepuestosViewComponent implements OnInit {
   get repuestosFiltrados() {
     return this.repuestos().filter(r => {
       const mb = r.nombre.toLowerCase().includes(this.busqueda.toLowerCase()) ||
-                 r.descripcion.toLowerCase().includes(this.busqueda.toLowerCase());
+                 r.descripcion?.toLowerCase().includes(this.busqueda.toLowerCase());
       const mc = this.categoria === 'todas' || r.categoria === this.categoria;
       return mb && mc;
     });
+  }
+
+  abrirModalCrear() {
+    this.modoModal.set('crear');
+    this.repuestoEditando = null;
+    this.repuestoForm = {
+      nombre: '',
+      descripcion: '',
+      precio: 0,
+      stock: 0,
+      categoria: '',
+      marca: '',
+      imagen: '',
+      disponible: true,
+      vehiculosCompatibles: ''
+    };
+    this.modalError.set(null);
+    this.showModal.set(true);
+  }
+
+  abrirModalEditar(repuesto: Repuesto) {
+    this.modoModal.set('editar');
+    this.repuestoEditando = repuesto;
+    this.repuestoForm = {
+      nombre: repuesto.nombre,
+      descripcion: repuesto.descripcion || '',
+      precio: repuesto.precio,
+      stock: repuesto.stock || 0,
+      categoria: repuesto.categoria || '',
+      marca: repuesto.marca || '',
+      imagen: repuesto.imagen || '',
+      disponible: repuesto.disponible ?? true,
+      vehiculosCompatibles: repuesto.vehiculosCompatibles?.join(', ') || ''
+    };
+    this.modalError.set(null);
+    this.showModal.set(true);
+  }
+
+  cerrarModal() {
+    this.showModal.set(false);
+    this.repuestoEditando = null;
+    this.modalError.set(null);
+  }
+
+  async guardarRepuesto() {
+    // Validación
+    if (!this.repuestoForm.nombre.trim()) {
+      this.modalError.set('El nombre es requerido');
+      return;
+    }
+    if (!this.repuestoForm.categoria) {
+      this.modalError.set('La categoría es requerida');
+      return;
+    }
+    if (this.repuestoForm.precio <= 0) {
+      this.modalError.set('El precio debe ser mayor a 0');
+      return;
+    }
+    if (this.repuestoForm.stock < 0) {
+      this.modalError.set('El stock no puede ser negativo');
+      return;
+    }
+
+    this.guardando.set(true);
+    this.modalError.set(null);
+
+    const vehiculos = this.repuestoForm.vehiculosCompatibles
+      .split(',')
+      .map(v => v.trim())
+      .filter(v => v.length > 0);
+
+    const data = {
+      nombre: this.repuestoForm.nombre,
+      descripcion: this.repuestoForm.descripcion,
+      precio: this.repuestoForm.precio,
+      stock: this.repuestoForm.stock,
+      categoria: this.repuestoForm.categoria,
+      marca: this.repuestoForm.marca,
+      imagen: this.repuestoForm.imagen || undefined,
+      disponible: this.repuestoForm.disponible,
+      vehiculos_compatibles: vehiculos
+    };
+
+    try {
+      if (this.modoModal() === 'crear') {
+        await this.repuestosService.crear(data as any).toPromise();
+      } else if (this.repuestoEditando) {
+        await this.repuestosService.actualizar(this.repuestoEditando.id, data as any).toPromise();
+      }
+      this.cerrarModal();
+      await this.cargarRepuestos();
+    } catch (e: any) {
+      this.modalError.set(e.error?.detail || e.message || 'Error al guardar el repuesto');
+    } finally {
+      this.guardando.set(false);
+    }
+  }
+
+  async toggleDisponibilidad(repuesto: Repuesto) {
+    try {
+      await this.repuestosService.actualizar(repuesto.id, {
+        disponible: !repuesto.disponible
+      } as any).toPromise();
+      await this.cargarRepuestos();
+    } catch (e: any) {
+      this.error.set('Error al actualizar disponibilidad: ' + (e.error?.detail || e.message));
+    }
+  }
+
+  async eliminarRepuesto(repuesto: Repuesto) {
+    if (!confirm(`¿Estás seguro de eliminar "${repuesto.nombre}"?\n\nEsta acción no se puede deshacer.`)) {
+      return;
+    }
+
+    try {
+      await this.repuestosService.eliminar(repuesto.id).toPromise();
+      await this.cargarRepuestos();
+    } catch (e: any) {
+      this.error.set('Error al eliminar: ' + (e.error?.detail || e.message));
+    }
   }
 
   get pendienteCount() { return this.mockData.solicitudesRepuesto.filter(s => s.estado === 'pendiente').length; }
@@ -2034,19 +2274,26 @@ export class PersonalViewComponent implements OnInit {
     <div class="card" style="padding:1.5rem" *ngIf="taller() as t">
       <div style="display:flex;align-items:flex-start;gap:1.5rem">
         <div style="position:relative;flex-shrink:0">
-          <img [src]="t.foto" [alt]="t.nombre" style="width:128px;height:128px;border-radius:0.75rem;object-fit:cover" />
-          <button *ngIf="editing" style="position:absolute;bottom:0;right:0;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#2563eb,#22c55e);color:white;border:none;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.2)">📷</button>
+          <!-- Input file oculto para seleccionar foto -->
+          <input #fileInput type="file" accept="image/jpeg,image/png,image/webp" style="display:none" (change)="onFileSelected($event)" />
+          <img [src]="nuevaFotoPreview() || tallerService.getFotoUrl(t.foto)" [alt]="t.nombre" style="width:128px;height:128px;border-radius:0.75rem;object-fit:cover" />
+          <button *ngIf="editing" (click)="fileInput.click()" [disabled]="subiendoFoto()" style="position:absolute;bottom:0;right:0;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#2563eb,#22c55e);color:white;border:none;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.2);transition:opacity 0.2s" [style.opacity]="subiendoFoto() ? '0.6' : '1'">
+            <svg *ngIf="!subiendoFoto()" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <svg *ngIf="subiendoFoto()" style="width:16px;height:16px;animation:spin 1s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/></svg>
+          </button>
+          <!-- Botón cancelar preview si hay nueva foto -->
+          <button *ngIf="nuevaFotoPreview() && editing" (click)="cancelarCambioFoto()" style="position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#ef4444;color:white;border:none;cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,0.2);font-size:12px">×</button>
         </div>
         <div style="flex:1">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem">
             <div>
               <h1 style="margin-bottom:0.5rem">{{ t.nombre }}</h1>
               <div style="display:flex;align-items:center;gap:1rem;font-size:0.875rem;color:#4b5563">
-                <span>⭐ {{ t.calificacion }}</span>
-                <span>🔧 {{ t.totalServicios }} servicios</span>
+                <span style="display:flex;align-items:center;gap:0.25rem"><svg style="width:16px;height:16px;color:#fbbf24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> {{ t.calificacion }}</span>
+                <span style="display:flex;align-items:center;gap:0.25rem"><svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> {{ t.totalServicios }} servicios</span>
               </div>
             </div>
-            <button *ngIf="!editing" class="btn btn-outline" (click)="editing = true">✏ Editar Perfil</button>
+            <button *ngIf="!editing" class="btn btn-outline" (click)="editing = true" style="display:flex;align-items:center;gap:0.5rem"><svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Editar Perfil</button>
           </div>
           <p class="text-gray-600">{{ t.descripcion }}</p>
         </div>
@@ -2059,7 +2306,11 @@ export class PersonalViewComponent implements OnInit {
       <ng-container *ngIf="!editing">
         <div style="display:flex;flex-direction:column;gap:0.75rem">
           <div *ngFor="let c of contactoItems" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;background:#f9fafb;border-radius:0.5rem">
-            <span style="font-size:1.25rem">{{ c.icon }}</span>
+            <span style="display:flex;align-items:center;justify-content:center;width:24px;height:24px">
+              <svg *ngIf="c.label === 'Ubicación'" style="width:20px;height:20px;color:#6b7280" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <svg *ngIf="c.label === 'Teléfono'" style="width:20px;height:20px;color:#6b7280" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <svg *ngIf="c.label === 'Email'" style="width:20px;height:20px;color:#6b7280" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </span>
             <div><p class="text-xs text-gray-500" style="margin-bottom:0.25rem">{{ c.label }}</p><p class="text-sm text-gray-900">{{ c.value }}</p></div>
           </div>
         </div>
@@ -2084,7 +2335,10 @@ export class PersonalViewComponent implements OnInit {
       <h3 style="margin-bottom:1rem">Estadísticas</h3>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem">
         <div *ngFor="let s of estadisticas" style="text-align:center;padding:1rem;background:linear-gradient(135deg,#eff6ff,#f0fdf4);border-radius:0.5rem">
-          <p style="font-size:1.875rem;font-weight:600;color:#111827;margin-bottom:0.25rem">{{ s.value }}</p>
+          <p style="font-size:1.875rem;font-weight:600;color:#111827;margin-bottom:0.25rem;display:flex;align-items:center;justify-content:center;gap:0.25rem">
+            <svg *ngIf="s.label === 'Calificación Promedio'" style="width:24px;height:24px;color:#fbbf24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            {{ s.value }}
+          </p>
           <p class="text-sm text-gray-600">{{ s.label }}</p>
         </div>
       </div>
@@ -2094,10 +2348,10 @@ export class PersonalViewComponent implements OnInit {
     <div class="card" style="padding:1.5rem" *ngIf="taller()">
       <h3 style="margin-bottom:1rem">Configuración de Cuenta</h3>
       <div style="display:flex;flex-direction:column;gap:0.75rem">
-        <button class="btn btn-outline" style="justify-content:flex-start" (click)="openChangePasswordModal()">✏ Cambiar Contraseña</button>
-        <button class="btn btn-outline" style="justify-content:flex-start">🔔 Configurar Notificaciones</button>
+        <button class="btn btn-outline" style="justify-content:flex-start;display:flex;align-items:center;gap:0.5rem" (click)="openChangePasswordModal()"><svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Cambiar Contraseña</button>
+        <button class="btn btn-outline" style="justify-content:flex-start;display:flex;align-items:center;gap:0.5rem"><svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Configurar Notificaciones</button>
         <hr class="separator" />
-        <button class="btn btn-outline" style="justify-content:flex-start;color:#dc2626" (click)="state.logout()">🚪 Cerrar Sesión</button>
+        <button class="btn btn-outline" style="justify-content:flex-start;color:#dc2626;display:flex;align-items:center;gap:0.5rem" (click)="state.logout()"><svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Cerrar Sesión</button>
       </div>
     </div>
 
@@ -2153,6 +2407,11 @@ export class PerfilTallerViewComponent implements OnInit {
 
   taller = signal<Taller>({ ...this.mockData.taller });
   stats = signal<any>(null);
+
+  // Foto de perfil
+  nuevaFotoFile: File | null = null;
+  nuevaFotoPreview = signal<string | null>(null);
+  subiendoFoto = signal(false);
 
   // Modal cambiar contraseña
   showChangePasswordModal = signal(false);
@@ -2242,27 +2501,79 @@ export class PerfilTallerViewComponent implements OnInit {
 
   async guardarCambios() {
     try {
+      // Si hay nueva foto, subirla primero
+      if (this.nuevaFotoFile) {
+        this.subiendoFoto.set(true);
+        const fotoResponse = await this.tallerService.updateFoto(this.nuevaFotoFile).toPromise();
+        if (fotoResponse?.success) {
+          // Actualizar la URL de la foto en el objeto taller
+          this.taller.update(t => ({ ...t, foto: fotoResponse.url }));
+        }
+        this.subiendoFoto.set(false);
+      }
+
+      // Guardar otros datos del taller
       await this.tallerService.actualizar({
         nombre: this.taller().nombre,
         ubicacion: this.taller().ubicacion,
         telefono: this.taller().telefono,
         email: this.taller().email,
-        descripcion: this.taller().descripcion
+        descripcion: this.taller().descripcion,
+        foto: this.taller().foto
       }).toPromise();
+
+      // Limpiar estado de foto temporal
+      this.nuevaFotoFile = null;
+      this.nuevaFotoPreview.set(null);
       this.editing = false;
       this.cargarTaller();
     } catch (e) {
       console.error('Error guardando:', e);
+      this.subiendoFoto.set(false);
     }
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+
+      // Validar tipo
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Por favor selecciona una imagen válida (JPEG, PNG o WEBP)');
+        return;
+      }
+
+      // Validar tamaño (5MB máximo)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('La imagen no debe superar los 5MB');
+        return;
+      }
+
+      this.nuevaFotoFile = file;
+
+      // Generar preview
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.nuevaFotoPreview.set(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  cancelarCambioFoto() {
+    this.nuevaFotoFile = null;
+    this.nuevaFotoPreview.set(null);
   }
 
   get contactoItems() {
     const t = this.taller();
     if (!t) return [];
     return [
-      { icon: '📍', label: 'Ubicación', value: t.ubicacion || '' },
-      { icon: '📞', label: 'Teléfono', value: t.telefono || '' },
-      { icon: '✉', label: 'Email', value: t.email || '' },
+      { icon: 'location', label: 'Ubicación', value: t.ubicacion || '' },
+      { icon: 'phone', label: 'Teléfono', value: t.telefono || '' },
+      { icon: 'email', label: 'Email', value: t.email || '' },
     ];
   }
 
@@ -2272,7 +2583,7 @@ export class PerfilTallerViewComponent implements OnInit {
     if (!t) return [];
     return [
       { value: s?.total_servicios ?? t.totalServicios ?? 0, label: 'Servicios Totales' },
-      { value: `⭐ ${s?.calificacion_promedio ?? t.calificacion ?? 0}`, label: 'Calificación Promedio' },
+      { value: s?.calificacion_promedio ?? t.calificacion ?? 0, label: 'Calificación Promedio' },
       { value: `${s?.ingresos_totales ?? 0} Bs`, label: 'Ingresos' },
     ];
   }

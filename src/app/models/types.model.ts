@@ -55,6 +55,7 @@ export interface Repuesto {
   marca: string;
   categoria: string;
   vehiculosCompatibles: string[];
+  stock?: number;
 }
 
 export interface SolicitudRepuesto {

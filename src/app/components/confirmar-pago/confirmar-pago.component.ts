@@ -44,7 +44,7 @@ export class ConfirmarPagoComponent {
     if (!this.validarMonto()) return;
 
     this.loading = true;
-    console.log('📤 Enviando confirmación de pago:', {
+    console.log('Enviando confirmación de pago:', {
       solicitudId: this.solicitudId,
       monto: this.monto,
       comision: this.comision,
@@ -53,7 +53,7 @@ export class ConfirmarPagoComponent {
 
     this.pagosService.confirmarPago(this.solicitudId, this.monto).subscribe({
       next: (response) => {
-        console.log('✅ Confirmación de pago exitosa:', response);
+        console.log('Confirmación de pago exitosa:', response);
         this.loading = false;
         this.onConfirmar.emit({
           solicitudId: this.solicitudId,
@@ -64,7 +64,7 @@ export class ConfirmarPagoComponent {
         });
       },
       error: (err) => {
-        console.error('❌ Error al confirmar pago:', err);
+        console.error('Error al confirmar pago:', err);
         this.loading = false;
         this.error = err.error?.detail || 'Error al confirmar el pago';
       }
