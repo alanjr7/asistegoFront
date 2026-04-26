@@ -42,6 +42,26 @@ interface ChangePasswordResponse {
   message: string;
 }
 
+interface ForgotPasswordRequest {
+  email: string;
+}
+
+interface ForgotPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
+interface ResetPasswordRequest {
+  email: string;
+  temp_password: string;
+  new_password: string;
+}
+
+interface ResetPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
 interface OAuthResponse {
   access_token: string;
   token_type: string;
@@ -107,5 +127,13 @@ export class AuthService {
     const token = localStorage.getItem('token');
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
     return this.http.post<ChangePasswordResponse>(`${this.apiUrl}/auth/change-password`, data, { headers });
+  }
+
+  forgotPassword(email: string): Observable<ForgotPasswordResponse> {
+    return this.http.post<ForgotPasswordResponse>(`${this.apiUrl}/auth/forgot-password`, { email });
+  }
+
+  resetPassword(data: ResetPasswordRequest): Observable<ResetPasswordResponse> {
+    return this.http.post<ResetPasswordResponse>(`${this.apiUrl}/auth/reset-password`, data);
   }
 }

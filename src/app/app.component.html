@@ -4,6 +4,8 @@
 <!-- Login / Registro -->
 <app-login-view *ngIf="!state.isAuthenticated() && state.currentView() === 'login'"></app-login-view>
 <app-register-view *ngIf="!state.isAuthenticated() && state.currentView() === 'register'"></app-register-view>
+<app-forgot-password-view *ngIf="!state.isAuthenticated() && state.currentView() === 'forgot-password'"></app-forgot-password-view>
+<app-reset-password-view *ngIf="!state.isAuthenticated() && state.currentView() === 'reset-password'"></app-reset-password-view>
 
 <!-- Admin Dashboard (sin sidebar tradicional) -->
 <app-admin-dashboard-view *ngIf="state.isAuthenticated() && state.currentView() === 'admin-dashboard'"></app-admin-dashboard-view>

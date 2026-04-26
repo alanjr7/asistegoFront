@@ -4,7 +4,7 @@ import { MockDataService } from './mock-data.service';
 import { AuthService } from './auth.service';
 import { NotificacionesService } from './notificaciones.service';
 import { SolicitudesService } from './solicitudes.service';
-import { catchError, of } from 'rxjs';
+import { catchError, of, firstValueFrom } from 'rxjs';
 
 interface JwtPayload {
   sub?: string;
@@ -115,33 +115,35 @@ export class AppStateService {
     }
   }
 
-  login(email: string, password: string, rememberMe: boolean) {
+  login(email: string, password: string, rememberMe: boolean): Promise<void> {
     this.loginError.set(null);
-    
-    this.authService.login({ email, password, rememberMe })
-      .pipe(
-        catchError(err => {
-          this.loginError.set(err.error?.detail || 'Error de conexión');
-          return of({ success: false, message: 'Error' });
-        })
-      )
-      .subscribe(response => {
-        if (response.success) {
-          const token = localStorage.getItem('token');
-          if (token) {
-            this.decodeAndSetUserFromToken(token);
-          }
-          this.isAuthenticated.set(true);
-          // Redirigir según rol
-          if (this.isAdmin()) {
-            this.currentView.set('admin-dashboard');
-          } else {
-            this.currentView.set('dashboard');
-          }
-          // Iniciar polling de notificaciones
-          this.iniciarNotificaciones();
+
+    return firstValueFrom(
+      this.authService.login({ email, password, rememberMe })
+        .pipe(
+          catchError(err => {
+            const errorMessage = err.error?.detail || 'Error de conexión';
+            this.loginError.set(errorMessage);
+            throw new Error(errorMessage);
+          })
+        )
+    ).then(response => {
+      if (response.success) {
+        const token = localStorage.getItem('token');
+        if (token) {
+          this.decodeAndSetUserFromToken(token);
         }
-      });
+        this.isAuthenticated.set(true);
+        // Redirigir según rol
+        if (this.isAdmin()) {
+          this.currentView.set('admin-dashboard');
+        } else {
+          this.currentView.set('dashboard');
+        }
+        // Iniciar polling de notificaciones
+        this.iniciarNotificaciones();
+      }
+    });
   }
 
   register(nombre: string, email: string, password: string) {

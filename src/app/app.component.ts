@@ -5,6 +5,8 @@ import { SidebarComponent } from './components/layout/sidebar.component';
 import { TopbarComponent } from './components/layout/topbar.component';
 import { LoginViewComponent } from './views/login-view.component';
 import { RegisterViewComponent } from './views/register-view.component';
+import { ForgotPasswordViewComponent } from './views/forgot-password-view.component';
+import { ResetPasswordViewComponent } from './views/reset-password-view.component';
 import { DashboardViewComponent } from './views/dashboard-view.component';
 import { LandingViewComponent } from './views/landing-view.component';
 import { AdminDashboardViewComponent } from './views/admin-dashboard-view.component';
@@ -31,6 +33,8 @@ import { IAWidgetComponent, CalificacionModalComponent } from './components/widg
     TopbarComponent,
     LoginViewComponent,
     RegisterViewComponent,
+    ForgotPasswordViewComponent,
+    ResetPasswordViewComponent,
     LandingViewComponent,
     AdminDashboardViewComponent,
     DashboardViewComponent,
@@ -59,8 +63,8 @@ export class AppComponent implements OnInit, OnDestroy {
       if (!this.state.isAuthenticated()) {
         // Si no está autenticado, mostrar landing page (no login directamente)
         const currentView = this.state.currentView();
-        // Solo cambiar a landing si no está en login o register
-        if (currentView !== 'login' && currentView !== 'register' && currentView !== 'landing') {
+        // Solo cambiar a landing si no está en login, register, forgot-password o reset-password
+        if (currentView !== 'login' && currentView !== 'register' && currentView !== 'landing' && currentView !== 'forgot-password' && currentView !== 'reset-password') {
           this.state.currentView.set('landing');
         }
       }
