@@ -1,0 +1,286 @@
+<div class="landing-container">
+  <!-- Header -->
+  <header class="landing-header">
+    <div class="header-content">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <path d="M2 17l10 5 10-5"></path>
+            <path d="M2 12l10 5 10-5"></path>
+          </svg>
+        </div>
+        <span class="logo-text">AsisteGO</span>
+      </div>
+      <nav class="header-nav">
+        <a href="#features" class="nav-link">Características</a>
+        <a href="#about" class="nav-link">Sobre Nosotros</a>
+        <a href="#contact" class="nav-link">Contacto</a>
+        <button class="btn-login" (click)="irALogin()">Iniciar Sesión</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">
+        Asistencia Mecánica
+        <span class="highlight">a un Click</span>
+      </h1>
+      <p class="hero-description">
+        Conectamos conductores con talleres mecánicos y servicios de grúa en tiempo real.
+        Soluciones rápidas, profesionales y transparentes para tus emergencias vehiculares.
+      </p>
+      <div class="hero-actions">
+        <button class="btn-primary" (click)="irALogin()">
+          <span>Acceder al Sistema</span>
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-number">500+</span>
+          <span class="stat-label">Talleres</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">50K+</span>
+          <span class="stat-label">Servicios</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">24/7</span>
+          <span class="stat-label">Disponible</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="phone-mockup">
+        <div class="phone-screen">
+          <div class="app-header">
+            <span class="app-title">Solicitar Ayuda</span>
+          </div>
+          <div class="app-content">
+            <div class="service-card">
+              <div class="service-icon blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                </svg>
+              </div>
+              <div class="service-info">
+                <span class="service-name">Mecánica General</span>
+                <span class="service-desc">Reparaciones en carretera</span>
+              </div>
+            </div>
+            <div class="service-card">
+              <div class="service-icon orange">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="1" y="3" width="15" height="13"></rect>
+                  <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                  <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                  <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                </svg>
+              </div>
+              <div class="service-info">
+                <span class="service-name">Servicio de Grúa</span>
+                <span class="service-desc">Traslado seguro 24/7</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="features-section">
+    <div class="section-container">
+      <h2 class="section-title">Características Principales</h2>
+      <p class="section-subtitle">Todo lo que necesitas para gestionar emergencias vehiculares</p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <h3 class="feature-title">Respuesta Rápida</h3>
+          <p class="feature-desc">Conectamos con el taller más cercano en menos de 5 minutos promedio.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon orange">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </div>
+          <h3 class="feature-title">Red de Talleres</h3>
+          <p class="feature-desc">Cientos de talleres verificados listos para atenderte donde estés.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+          </div>
+          <h3 class="feature-title">Pagos Seguros</h3>
+          <p class="feature-desc">Múltiples métodos de pago con comprobantes digitales integrados.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon purple">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9H11a8.48 8.48 0 0 1 8 8v.5z"></path>
+            </svg>
+          </div>
+          <h3 class="feature-title">Chat en Tiempo Real</h3>
+          <p class="feature-desc">Comunicación directa con mecánicos durante todo el servicio.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon pink">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+          </div>
+          <h3 class="feature-title">Seguimiento GPS</h3>
+          <p class="feature-desc">Ubicación en tiempo real de la grúa o mecánico asignado.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon teal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </div>
+          <h3 class="feature-title">Facturación Digital</h3>
+          <p class="feature-desc">Comprobantes y facturas electrónicas automáticas.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="about-section">
+    <div class="section-container">
+      <div class="about-grid">
+        <div class="about-content">
+          <h2 class="section-title">Sobre AsisteGO</h2>
+          <p class="about-text">
+            AsisteGO es una plataforma innovadora que revoluciona la forma en que los conductores
+            acceden a servicios mecánicos de emergencia. Fundada en 2024, conectamos miles de
+            usuarios con talleres confiables a través de tecnología de punta.
+          </p>
+          <p class="about-text">
+            Nuestra misión es proporcionar asistencia vehicular rápida, transparente y accesible
+            para todos, eliminando la incertidumbre durante las emergencias en carretera.
+          </p>
+          <div class="about-values">
+            <div class="value-item">
+              <span class="value-icon">⚡</span>
+              <span class="value-text">Rapidez</span>
+            </div>
+            <div class="value-item">
+              <span class="value-icon">🔒</span>
+              <span class="value-text">Confianza</span>
+            </div>
+            <div class="value-item">
+              <span class="value-icon">💡</span>
+              <span class="value-text">Innovación</span>
+            </div>
+          </div>
+        </div>
+        <div class="about-visual">
+          <div class="about-card">
+            <div class="card-header">
+              <span class="card-badge">Sistema</span>
+            </div>
+            <div class="card-content">
+              <div class="system-item">
+                <span class="system-dot green"></span>
+                <span class="system-label">Backend FastAPI</span>
+              </div>
+              <div class="system-item">
+                <span class="system-dot blue"></span>
+                <span class="system-label">Frontend Angular</span>
+              </div>
+              <div class="system-item">
+                <span class="system-dot purple"></span>
+                <span class="system-label">App Flutter</span>
+              </div>
+              <div class="system-item">
+                <span class="system-dot orange"></span>
+                <span class="system-label">PostgreSQL</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="section-container">
+      <div class="cta-content">
+        <h2 class="cta-title">¿Listo para comenzar?</h2>
+        <p class="cta-description">
+          Accede al sistema de administración para gestionar talleres, ver estadísticas
+          y controlar todos los aspectos de la plataforma.
+        </p>
+        <button class="btn-cta" (click)="irALogin()">
+          <span>Iniciar Sesión</span>
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer id="contact" class="landing-footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+              <path d="M2 17l10 5 10-5"></path>
+              <path d="M2 12l10 5 10-5"></path>
+            </svg>
+          </div>
+          <span class="logo-text">AsisteGO</span>
+        </div>
+        <p class="footer-description">
+          Sistema integral de asistencia mecánica. Conectando conductores con
+          los mejores talleres desde 2024.
+        </p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-column">
+          <h4 class="footer-column-title">Sistema</h4>
+          <a class="footer-link" (click)="irALogin()">Administración</a>
+          <a class="footer-link" (click)="irALogin()">Talleres</a>
+          <a class="footer-link" (click)="irALogin()">Reportes</a>
+        </div>
+        <div class="footer-column">
+          <h4 class="footer-column-title">Contacto</h4>
+          <span class="footer-text">admin&#64;asistego.com</span>
+          <span class="footer-text">+1 (555) 123-4567</span>
+          <span class="footer-text">Soporte 24/7</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="copyright">© 2024 AsisteGO. Todos los derechos reservados.</span>
+    </div>
+  </footer>
+</div>

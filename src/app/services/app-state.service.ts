@@ -6,13 +6,26 @@ import { NotificacionesService } from './notificaciones.service';
 import { SolicitudesService } from './solicitudes.service';
 import { catchError, of } from 'rxjs';
 
+interface JwtPayload {
+  sub?: string;
+  nombre?: string;
+  rol?: string;
+  taller_id?: string;
+  tipo_usuario?: string;
+  exp?: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AppStateService {
   private authService = inject(AuthService);
   private notificacionesService = inject(NotificacionesService);
   private solicitudesService = inject(SolicitudesService);
   isAuthenticated = signal(false);
-  currentView = signal('login');
+  currentView = signal('landing');
+  userRole = signal<string | null>(null);
+  userNombre = signal<string | null>(null);
+  userEmail = signal<string | null>(null);
+  userTallerId = signal<string | null>(null);
   solicitudActiva = signal<Solicitud | null>(null);
   solicitudPendienteSeleccionada = signal<Solicitud | null>(null);
   notificaciones = signal<Notificacion[]>([]);
@@ -27,6 +40,10 @@ export class AppStateService {
     this.solicitudesPendientesCount()
   );
 
+  // Computed para verificar si es admin
+  isAdmin = computed(() => this.userRole() === 'administrador');
+  isTallerUser = computed(() => this.userRole() === 'encargado' || this.userRole() === 'mecanico');
+
   constructor(private mockData: MockDataService) {
     // Inicializar con datos del mock si no hay conexión
     this.notificacionesService.notificaciones.set([...mockData.notificaciones]);
@@ -40,8 +57,14 @@ export class AppStateService {
     // Verificar si hay token guardado y restaurar sesión
     const token = localStorage.getItem('token');
     if (token) {
+      this.decodeAndSetUserFromToken(token);
       this.isAuthenticated.set(true);
-      this.currentView.set('dashboard');
+      // Redirigir según el rol
+      if (this.isAdmin()) {
+        this.currentView.set('admin-dashboard');
+      } else {
+        this.currentView.set('dashboard');
+      }
       this.iniciarNotificaciones();
     }
   }
@@ -62,6 +85,36 @@ export class AppStateService {
     this.notificacionesService.detenerPolling();
   }
 
+  private decodeAndSetUserFromToken(token: string): void {
+    try {
+      const payload = this.decodeJwt(token);
+      if (payload) {
+        this.userRole.set(payload.rol || null);
+        this.userNombre.set(payload.nombre || null);
+        this.userEmail.set(payload.sub || null);
+        this.userTallerId.set(payload.taller_id || null);
+      }
+    } catch (e) {
+      console.error('Error decodificando token:', e);
+    }
+  }
+
+  private decodeJwt(token: string): JwtPayload | null {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      return null;
+    }
+  }
+
   login(email: string, password: string, rememberMe: boolean) {
     this.loginError.set(null);
     
@@ -74,8 +127,17 @@ export class AppStateService {
       )
       .subscribe(response => {
         if (response.success) {
+          const token = localStorage.getItem('token');
+          if (token) {
+            this.decodeAndSetUserFromToken(token);
+          }
           this.isAuthenticated.set(true);
-          this.currentView.set('dashboard');
+          // Redirigir según rol
+          if (this.isAdmin()) {
+            this.currentView.set('admin-dashboard');
+          } else {
+            this.currentView.set('dashboard');
+          }
           // Iniciar polling de notificaciones
           this.iniciarNotificaciones();
         }
@@ -94,8 +156,17 @@ export class AppStateService {
       )
       .subscribe(response => {
         if (response.success) {
+          const token = localStorage.getItem('token');
+          if (token) {
+            this.decodeAndSetUserFromToken(token);
+          }
           this.isAuthenticated.set(true);
-          this.currentView.set('dashboard');
+          // Redirigir según rol
+          if (this.isAdmin()) {
+            this.currentView.set('admin-dashboard');
+          } else {
+            this.currentView.set('dashboard');
+          }
           // Iniciar polling de notificaciones
           this.iniciarNotificaciones();
         }
@@ -106,7 +177,11 @@ export class AppStateService {
     this.authService.logout();
     this.detenerNotificaciones();
     this.isAuthenticated.set(false);
-    this.currentView.set('login');
+    this.userRole.set(null);
+    this.userNombre.set(null);
+    this.userEmail.set(null);
+    this.userTallerId.set(null);
+    this.currentView.set('landing');
     this.solicitudActiva.set(null);
   }
 
@@ -177,6 +252,10 @@ export class AppStateService {
 
   getTitulo(): string {
     const map: Record<string, string> = {
+      landing: 'Bienvenido',
+      login: 'Iniciar Sesión',
+      register: 'Registro',
+      'admin-dashboard': 'Panel de Administración',
       dashboard: 'Dashboard',
       seguimiento: 'Seguimiento en Tiempo Real',
       chat: 'Mensajes',

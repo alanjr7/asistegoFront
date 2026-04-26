@@ -1,9 +1,15 @@
+<!-- Landing Page (sin autenticación) -->
+<app-landing-view *ngIf="!state.isAuthenticated() && state.currentView() === 'landing'"></app-landing-view>
+
 <!-- Login / Registro -->
 <app-login-view *ngIf="!state.isAuthenticated() && state.currentView() === 'login'"></app-login-view>
 <app-register-view *ngIf="!state.isAuthenticated() && state.currentView() === 'register'"></app-register-view>
 
-<!-- App principal -->
-<div *ngIf="state.isAuthenticated()" class="h-screen flex bg-gray-50 overflow-hidden">
+<!-- Admin Dashboard (sin sidebar tradicional) -->
+<app-admin-dashboard-view *ngIf="state.isAuthenticated() && state.currentView() === 'admin-dashboard'"></app-admin-dashboard-view>
+
+<!-- App principal (talleres) -->
+<div *ngIf="state.isAuthenticated() && state.currentView() !== 'admin-dashboard'" class="h-screen flex bg-gray-50 overflow-hidden">
   <!-- Sidebar -->
   <app-sidebar></app-sidebar>
 

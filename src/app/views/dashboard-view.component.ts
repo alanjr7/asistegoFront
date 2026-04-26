@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { AppStateService } from '../services/app-state.service';
 import { SolicitudesService } from '../services/solicitudes.service';
 import { PersonalService } from '../services/personal.service';
+import { TallerService } from '../services/taller.service';
 import { MockDataService, SANTA_CRUZ_CENTER } from '../services/mock-data.service';
-import { Solicitud, Personal, Factura } from '../models/types.model';
+import { Solicitud, Personal, Factura, Taller } from '../models/types.model';
 import { FacturasService } from '../services/facturas.service';
 import { PagosService } from '../services/pagos.service';
 import { ConfirmarPagoComponent } from '../components/confirmar-pago/confirmar-pago.component';
@@ -24,10 +25,12 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
   personalService = inject(PersonalService);
   facturasService = inject(FacturasService);
   pagosService = inject(PagosService);
+  tallerService = inject(TallerService);
   mockData = inject(MockDataService);
 
   solicitudes = signal<Solicitud[]>([]);
   personal = signal<Personal[]>([]);
+  taller = signal<Taller | null>(null);
   pagosRecientes = signal<Factura[]>([]);
   selectedSolicitud = signal<Solicitud | null>(null);
   showAnalisisIA = signal(false);
@@ -68,6 +71,7 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.cargarDatos();
+    this.cargarTaller();
     this.cargarPagosRecientes();
     this.cargarIngresosHoy();
     setTimeout(() => this.initMap(), 100);
@@ -118,6 +122,31 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
       });
   }
 
+  cargarTaller() {
+    this.tallerService.obtener()
+      .subscribe({
+        next: (data) => {
+          this.taller.set(data);
+          this.updateMarkers();
+        },
+        error: () => {
+          // Fallback: usar datos mock del taller
+          this.taller.set({
+            id: '1',
+            nombre: 'Taller Mecánico AsisteGO',
+            direccion: 'Av. Principal 123, Santa Cruz',
+            telefono: '123456789',
+            email: 'taller@asistego.com',
+            calificacion: 4.8,
+            totalServicios: 156,
+            lat: SANTA_CRUZ_CENTER.lat,
+            lng: SANTA_CRUZ_CENTER.lng
+          });
+          this.updateMarkers();
+        }
+      });
+  }
+
 
   initMap() {
     if (typeof L === 'undefined') return;
@@ -136,6 +165,21 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
     if (!this.map) return;
     this.markers.forEach(m => m.remove());
     this.markers = [];
+
+    // Marcador del taller
+    const t = this.taller();
+    if (t && t.lat && t.lng) {
+      const tallerIcon = L.divIcon({
+        html: `<div style="width:36px;height:36px;background:linear-gradient(135deg,#dc2626,#ef4444);border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;color:white;font-size:16px;">🔧</div>`,
+        className: '',
+        iconSize: [36, 36],
+        iconAnchor: [18, 18],
+      });
+      const tallerMarker = L.marker([t.lat, t.lng], { icon: tallerIcon })
+        .addTo(this.map)
+        .bindPopup(`<b>${t.nombre}</b><br>${t.direccion}`);
+      this.markers.push(tallerMarker);
+    }
 
     this.solicitudesPendientes.forEach(s => {
       const icon = L.divIcon({
