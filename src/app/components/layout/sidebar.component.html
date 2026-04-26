@@ -7,8 +7,8 @@
       </svg>
     </div>
     <div>
-      <h1 class="text-base font-bold text-gray-900 leading-tight">AsisteGO</h1>
-      <p class="text-xs text-gray-500">Taller Mecánico</p>
+      <h1 class="text-base font-bold text-gray-900 leading-tight">{{ nombreTaller() }}</h1>
+      <p class="text-xs text-gray-500">Panel de Control</p>
     </div>
   </div>
 
@@ -64,9 +64,9 @@
   <!-- Footer -->
   <div class="p-4 border-t border-gray-200">
     <div class="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg">
-      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-green-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">TM</div>
+      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-green-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{{ nombreTaller()[0] }}</div>
       <div class="flex-1 min-w-0">
-        <p class="text-sm font-medium text-gray-900 truncate">Taller Mendoza</p>
+        <p class="text-sm font-medium text-gray-900 truncate">{{ nombreTaller() }}</p>
         <p class="text-xs text-gray-500">En línea</p>
       </div>
     </div>

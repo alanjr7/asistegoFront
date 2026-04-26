@@ -64,6 +64,7 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
   }
 
   private refreshInterval: any;
+  private solicitudesInterval: any;
 
   ngOnInit() {
     this.cargarDatos();
@@ -76,6 +77,11 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
       this.cargarIngresosHoy();
       this.cargarPagosRecientes();
     }, 30000);
+
+    // Auto-refresh every 2 seconds to detect new solicitudes cercanas
+    this.solicitudesInterval = setInterval(() => {
+      this.cargarSolicitudes();
+    }, 2000);
   }
 
   ngOnDestroy() {
@@ -86,24 +92,25 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
     }
+    if (this.solicitudesInterval) {
+      clearInterval(this.solicitudesInterval);
+    }
   }
 
   cargarDatos() {
-    this.loading.set(true);
+    this.cargarSolicitudes();
+    this.cargarPersonal();
+  }
+
+  cargarSolicitudes() {
     this.solicitudesService.listar({ pendientes: true })
       .subscribe({
-        next: (data) => {
-          this.solicitudes.set(data);
-          this.loading.set(false);
-          setTimeout(() => this.updateMarkers(), 0);
-        },
-        error: (err) => {
-          this.error.set('Error al cargar solicitudes: ' + err.message);
-          this.loading.set(false);
-          this.solicitudes.set([...this.mockData.solicitudes]);
-        }
+        next: (data) => this.solicitudes.set(data),
+        error: () => this.solicitudes.set([...this.mockData.solicitudes])
       });
-    
+  }
+
+  cargarPersonal() {
     this.personalService.listar({ disponibles: true })
       .subscribe({
         next: (data) => this.personal.set(data),

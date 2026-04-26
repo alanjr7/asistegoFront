@@ -21,10 +21,15 @@ export interface Vehiculo {
 }
 
 export interface AnalisisIA {
-  piezasDetectadas?: string[];
-  danosIdentificados?: string[];
+  transcripcionAudio?: string;
   tipoProblema?: string;
-  recomendaciones?: string[];
+  prioridad?: string;
+  danosDetectados?: string[];
+  piezasSugeridas?: string[];
+  costoEstimado?: number;
+  tiempoEstimadoMinutos?: number;
+  resumen?: string;
+  confianza?: number;
 }
 
 export interface Solicitud {
@@ -147,12 +152,14 @@ export interface Taller {
   id: string;
   nombre: string;
   foto?: string;
-  ubicacion: string;
+  direccion: string;
   telefono: string;
   email: string;
   calificacion: number;
   totalServicios: number;
   descripcion?: string;
+  lat?: number;
+  lng?: number;
 }
 
 export interface MapMarker {
@@ -343,12 +350,14 @@ export interface FacturaUpdate {
 export interface TallerUpdate {
   nombre?: string;
   foto?: string;
-  ubicacion?: string;
+  direccion?: string;
   telefono?: string;
   email?: string;
   calificacion?: number;
   total_servicios?: number;
   descripcion?: string;
+  lat?: number;
+  lng?: number;
 }
 
 export interface StatsResponse {

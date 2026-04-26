@@ -277,9 +277,15 @@ export class ChatViewComponent implements OnInit {
               <p class="text-sm text-gray-500">{{ pendiente.distancia }} km • {{ pendiente.cliente.telefono }}</p>
             </div>
           </div>
-          <button class="btn btn-outline" style="width:100%;display:flex;align-items:center;justify-content:center;gap:0.5rem">
-            <svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> Llamar al cliente
-          </button>
+          <a
+            class="btn btn-outline"
+            style="width:100%;display:flex;align-items:center;justify-content:center;gap:0.5rem"
+            [href]="'https://wa.me/' + pendiente.cliente.telefono"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> WhatsApp cliente
+          </a>
         </div>
 
         <!-- Vehículo -->
@@ -289,8 +295,65 @@ export class ChatViewComponent implements OnInit {
           <span class="badge badge-outline" style="margin-top:0.5rem">{{ pendiente.vehiculo.placa }}</span>
         </div>
 
-        <!-- Problema -->
-        <div class="card" style="padding:1rem">
+        <!-- Problema detectado por IA -->
+        <div *ngIf="pendiente.analisisIA" class="card" style="padding:1rem">
+          <h3 class="text-sm text-gray-500" style="margin-bottom:0.75rem;display:flex;align-items:center;gap:0.25rem"><svg style="width:16px;height:16px;color:#2563eb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Problema detectado por IA</h3>
+
+          <!-- Tipo y prioridad -->
+          <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;flex-wrap:wrap">
+            <span *ngIf="pendiente.analisisIA?.tipoProblema" class="badge badge-primary">{{ pendiente.analisisIA?.tipoProblema }}</span>
+            <span *ngIf="pendiente.analisisIA?.prioridad" class="badge" [class.badge-red]="pendiente.analisisIA?.prioridad === 'alta' || pendiente.analisisIA?.prioridad === 'critica'" [class.badge-amber]="pendiente.analisisIA?.prioridad === 'media'" [class.badge-green]="pendiente.analisisIA?.prioridad === 'baja'">
+              {{ pendiente.analisisIA?.prioridad | titlecase }}
+            </span>
+            <span *ngIf="pendiente.analisisIA?.confianza" class="badge badge-primary">{{ pendiente.analisisIA?.confianza }}% confianza</span>
+          </div>
+
+          <!-- Transcripción -->
+          <div *ngIf="pendiente.analisisIA?.transcripcionAudio" style="margin-bottom:0.75rem;padding:0.75rem;background:#f3f4f6;border-radius:0.5rem;border-left:3px solid #2563eb">
+            <p class="text-xs text-gray-500" style="margin-bottom:0.25rem">Transcripción del cliente</p>
+            <p class="text-sm text-gray-700 italic">"{{ pendiente.analisisIA?.transcripcionAudio }}"</p>
+          </div>
+
+          <!-- Resumen -->
+          <div *ngIf="pendiente.analisisIA?.resumen" style="margin-bottom:0.75rem">
+            <p class="text-xs text-gray-500" style="margin-bottom:0.25rem">Resumen del diagnóstico</p>
+            <p class="text-sm text-gray-700">{{ pendiente.analisisIA?.resumen }}</p>
+          </div>
+
+          <!-- Daños -->
+          <div *ngIf="pendiente.analisisIA?.danosDetectados?.length" style="margin-bottom:0.75rem">
+            <p class="text-xs text-gray-500" style="margin-bottom:0.25rem">Daños detectados</p>
+            <div style="display:flex;flex-wrap:wrap;gap:0.25rem">
+              <span *ngFor="let d of pendiente.analisisIA?.danosDetectados" class="badge badge-red">{{ d }}</span>
+            </div>
+          </div>
+
+          <!-- Piezas -->
+          <div *ngIf="pendiente.analisisIA?.piezasSugeridas?.length" style="margin-bottom:0.75rem">
+            <p class="text-xs text-gray-500" style="margin-bottom:0.25rem">Piezas sugeridas</p>
+            <div style="display:flex;flex-wrap:wrap;gap:0.25rem">
+              <span *ngFor="let p of pendiente.analisisIA?.piezasSugeridas" class="badge badge-secondary">{{ p }}</span>
+            </div>
+          </div>
+
+          <!-- Estimaciones -->
+          <div *ngIf="pendiente.analisisIA?.costoEstimado || pendiente.analisisIA?.tiempoEstimadoMinutos" style="display:flex;gap:1rem;margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid #e5e7eb">
+            <div *ngIf="pendiente.analisisIA?.costoEstimado">
+              <p class="text-xs text-gray-500">Costo estimado</p>
+              <p class="text-lg font-semibold text-gray-900">Bs. {{ pendiente.analisisIA?.costoEstimado | number }}</p>
+            </div>
+            <div *ngIf="pendiente.analisisIA?.tiempoEstimadoMinutos">
+              <p class="text-xs text-gray-500">Tiempo estimado</p>
+              <p class="text-lg font-semibold text-gray-900">{{ pendiente.analisisIA?.tiempoEstimadoMinutos }} min</p>
+            </div>
+          </div>
+
+          <span *ngIf="pendiente.requiereRepuestos" class="badge badge-secondary" style="margin-top:0.75rem">Requiere repuestos</span>
+          <span *ngIf="pendiente.tipo === 'grua'" class="badge badge-red" style="margin-top:0.5rem;display:flex;align-items:center;gap:0.25rem"><svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 11v6h1M3 16h.01"/></svg> Servicio de Grúa</span>
+        </div>
+
+        <!-- Problema sin IA -->
+        <div *ngIf="!pendiente.analisisIA" class="card" style="padding:1rem">
           <h3 class="text-sm text-gray-500" style="margin-bottom:0.5rem;display:flex;align-items:center;gap:0.25rem"><svg style="width:16px;height:16px;color:#f59e0b" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Problema reportado</h3>
           <p class="text-gray-900">{{ pendiente.descripcion }}</p>
           <span *ngIf="pendiente.requiereRepuestos" class="badge badge-secondary" style="margin-top:0.5rem">Requiere repuestos</span>
@@ -552,8 +615,64 @@ export class ChatViewComponent implements OnInit {
           </div>
         </div>
 
-        <!-- Problema -->
-        <div class="card" style="padding:1rem">
+        <!-- Problema detectado por IA -->
+        <div *ngIf="solicitudSeleccionada()!.analisisIA" class="card" style="padding:1rem">
+          <h3 class="text-sm text-gray-500" style="margin-bottom:0.75rem">Problema detectado por IA</h3>
+
+          <!-- Tipo y prioridad -->
+          <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;flex-wrap:wrap">
+            <span *ngIf="solicitudSeleccionada()!.analisisIA?.tipoProblema" class="badge badge-primary">{{ solicitudSeleccionada()!.analisisIA?.tipoProblema }}</span>
+            <span *ngIf="solicitudSeleccionada()!.analisisIA?.prioridad" class="badge" [class.badge-red]="solicitudSeleccionada()!.analisisIA?.prioridad === 'alta' || solicitudSeleccionada()!.analisisIA?.prioridad === 'critica'" [class.badge-amber]="solicitudSeleccionada()!.analisisIA?.prioridad === 'media'" [class.badge-green]="solicitudSeleccionada()!.analisisIA?.prioridad === 'baja'">
+              {{ solicitudSeleccionada()!.analisisIA?.prioridad | titlecase }}
+            </span>
+            <span *ngIf="solicitudSeleccionada()!.analisisIA?.confianza" class="badge badge-primary">{{ solicitudSeleccionada()!.analisisIA?.confianza }}% confianza</span>
+          </div>
+
+          <!-- Transcripción -->
+          <div *ngIf="solicitudSeleccionada()!.analisisIA?.transcripcionAudio" style="margin-bottom:0.75rem;padding:0.75rem;background:#f3f4f6;border-radius:0.5rem;border-left:3px solid #2563eb">
+            <p class="text-xs text-gray-500" style="margin-bottom:0.25rem">Transcripción del cliente</p>
+            <p class="text-sm text-gray-700 italic">"{{ solicitudSeleccionada()!.analisisIA?.transcripcionAudio }}"</p>
+          </div>
+
+          <!-- Resumen -->
+          <div *ngIf="solicitudSeleccionada()!.analisisIA?.resumen" style="margin-bottom:0.75rem">
+            <p class="text-xs text-gray-500" style="margin-bottom:0.25rem">Resumen del diagnóstico</p>
+            <p class="text-sm text-gray-700">{{ solicitudSeleccionada()!.analisisIA?.resumen }}</p>
+          </div>
+
+          <!-- Daños -->
+          <div *ngIf="solicitudSeleccionada()!.analisisIA?.danosDetectados?.length" style="margin-bottom:0.75rem">
+            <p class="text-xs text-gray-500" style="margin-bottom:0.25rem">Daños detectados</p>
+            <div style="display:flex;flex-wrap:wrap;gap:0.25rem">
+              <span *ngFor="let d of solicitudSeleccionada()!.analisisIA?.danosDetectados" class="badge badge-red">{{ d }}</span>
+            </div>
+          </div>
+
+          <!-- Piezas -->
+          <div *ngIf="solicitudSeleccionada()!.analisisIA?.piezasSugeridas?.length" style="margin-bottom:0.75rem">
+            <p class="text-xs text-gray-500" style="margin-bottom:0.25rem">Piezas sugeridas</p>
+            <div style="display:flex;flex-wrap:wrap;gap:0.25rem">
+              <span *ngFor="let p of solicitudSeleccionada()!.analisisIA?.piezasSugeridas" class="badge badge-secondary">{{ p }}</span>
+            </div>
+          </div>
+
+          <!-- Estimaciones -->
+          <div *ngIf="solicitudSeleccionada()!.analisisIA?.costoEstimado || solicitudSeleccionada()!.analisisIA?.tiempoEstimadoMinutos" style="display:flex;gap:1rem;margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid #e5e7eb">
+            <div *ngIf="solicitudSeleccionada()!.analisisIA?.costoEstimado">
+              <p class="text-xs text-gray-500">Costo estimado</p>
+              <p class="text-lg font-semibold text-gray-900">Bs. {{ solicitudSeleccionada()!.analisisIA?.costoEstimado | number }}</p>
+            </div>
+            <div *ngIf="solicitudSeleccionada()!.analisisIA?.tiempoEstimadoMinutos">
+              <p class="text-xs text-gray-500">Tiempo estimado</p>
+              <p class="text-lg font-semibold text-gray-900">{{ solicitudSeleccionada()!.analisisIA?.tiempoEstimadoMinutos }} min</p>
+            </div>
+          </div>
+
+          <span *ngIf="solicitudSeleccionada()!.requiereRepuestos" class="badge badge-secondary" style="margin-top:0.75rem">Requiere repuestos</span>
+        </div>
+
+        <!-- Problema sin IA -->
+        <div *ngIf="!solicitudSeleccionada()!.analisisIA" class="card" style="padding:1rem">
           <h3 class="text-sm text-gray-500" style="margin-bottom:0.5rem">Problema reportado</h3>
           <p class="text-gray-900">{{ solicitudSeleccionada()!.descripcion }}</p>
           <span *ngIf="solicitudSeleccionada()!.requiereRepuestos" class="badge badge-secondary" style="margin-top:0.5rem">Requiere repuestos</span>
@@ -885,6 +1004,18 @@ export class SeguimientoViewComponent implements OnInit, OnDestroy {
   imports: [CommonModule, FormsModule],
   template: `
 <div class="view-padded">
+  <!-- Header con busqueda -->
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem">
+    <div>
+      <h2 style="margin:0">Pagos y Facturas</h2>
+      <p class="text-sm text-gray-500">Santa Cruz, Bolivia</p>
+    </div>
+    <div style="position:relative;flex:1;max-width:400px">
+      <span style="position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);color:#9ca3af">🔍</span>
+      <input class="input" [(ngModel)]="busqueda" (ngModelChange)="filtrarFacturas()" placeholder="Buscar clientes, servicios..." style="padding-left:2.25rem;width:100%" />
+    </div>
+  </div>
+
   <!-- Stats -->
   <div class="stats3">
     <div *ngFor="let s of resumen" class="card" style="padding:1rem">
@@ -902,15 +1033,27 @@ export class SeguimientoViewComponent implements OnInit, OnDestroy {
     </div>
   </div>
 
+  <!-- Loading -->
+  <div *ngIf="loading()" class="card" style="padding:2rem;text-align:center">
+    <div class="spinner" style="margin:0 auto 1rem"></div>
+    <p class="text-sm text-gray-500">Cargando datos...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error() && !loading()" class="card" style="padding:1rem;background:#fef2f2;border-color:#fecaca;color:#dc2626">
+    {{ error() }}
+    <button class="btn btn-sm btn-outline" style="margin-left:1rem" (click)="cargarDatos()">Reintentar</button>
+  </div>
+
   <!-- Tabs -->
-  <div class="tabs-list">
+  <div class="tabs-list" *ngIf="!loading()">
     <button class="tabs-trigger" [class.active]="tab() === 'confirmar'" (click)="tab.set('confirmar')">Confirmar Pago</button>
     <button class="tabs-trigger" [class.active]="tab() === 'facturas'" (click)="tab.set('facturas')">Facturas</button>
     <button class="tabs-trigger" [class.active]="tab() === 'reportes'" (click)="tab.set('reportes')">Reportes</button>
   </div>
 
   <!-- Confirmar -->
-  <div *ngIf="tab() === 'confirmar'">
+  <div *ngIf="tab() === 'confirmar' && !loading()">
     <div *ngIf="state.solicitudActiva(); else noServicio" class="card" style="padding:1.5rem">
       <h3 style="margin-bottom:1rem">Confirmar Pago de Servicio</h3>
       <div class="bg-gray-50 rounded-lg" style="padding:1rem;margin-bottom:1rem">
@@ -960,18 +1103,32 @@ export class SeguimientoViewComponent implements OnInit, OnDestroy {
   </div>
 
   <!-- Facturas -->
-  <div *ngIf="tab() === 'facturas'" class="card" style="padding:1.5rem">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+  <div *ngIf="tab() === 'facturas' && !loading()" class="card" style="padding:1.5rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem">
       <h3>Facturas Generadas</h3>
-      <button class="btn btn-outline btn-sm">📄 Emitir Nueva</button>
+      <div style="display:flex;gap:0.5rem">
+        <button class="btn btn-outline btn-sm" (click)="cargarDatos()">🔄 Actualizar</button>
+      </div>
     </div>
+
+    <!-- Filtros rápidos -->
+    <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
+      <button class="btn btn-sm" [class.btn-primary]="filtroEstado() === 'todos'" [class.btn-outline]="filtroEstado() !== 'todos'" (click)="setFiltroEstado('todos')">Todos</button>
+      <button class="btn btn-sm" [class.btn-primary]="filtroEstado() === 'enviadas'" [class.btn-outline]="filtroEstado() !== 'enviadas'" (click)="setFiltroEstado('enviadas')">Enviadas</button>
+      <button class="btn btn-sm" [class.btn-primary]="filtroEstado() === 'pendientes'" [class.btn-outline]="filtroEstado() !== 'pendientes'" (click)="setFiltroEstado('pendientes')">Pendientes</button>
+    </div>
+
+    <!-- Lista facturas filtradas -->
     <div style="display:flex;flex-direction:column;gap:0.75rem">
-      <div *ngFor="let f of facturas" class="factura-item">
+      <div *ngIf="facturasFiltradas().length === 0" style="text-align:center;padding:2rem;color:#6b7280">
+        <p>No se encontraron facturas</p>
+      </div>
+      <div *ngFor="let f of facturasFiltradas()" class="factura-item">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem">
           <div style="display:flex;align-items:center;gap:0.75rem">
-            <img [src]="f.cliente.foto" class="av40" />
+            <img [src]="f.cliente?.foto || 'https://i.pravatar.cc/150?img=12'" class="av40" />
             <div>
-              <p class="font-medium text-gray-900">{{ f.cliente.nombre }}</p>
+              <p class="font-medium text-gray-900">{{ f.cliente?.nombre || 'Cliente' }}</p>
               <p class="text-sm text-gray-500">{{ f.fecha | date:'dd/MM/yyyy' }} {{ f.fecha | date:'HH:mm' }}</p>
             </div>
           </div>
@@ -983,40 +1140,106 @@ export class SeguimientoViewComponent implements OnInit, OnDestroy {
           </div>
         </div>
         <div class="factura-grid">
-          <div><span class="text-gray-500 text-xs">Método:</span><p class="text-sm">{{ f.metodoPago.toUpperCase() }}</p></div>
-          <div><span class="text-gray-500 text-xs">Comisión:</span><p class="text-sm">Bs. {{ f.comision.toFixed(2) }}</p></div>
-          <div><span class="text-gray-500 text-xs">Total:</span><p class="text-sm">Bs. {{ f.total.toFixed(2) }}</p></div>
+          <div><span class="text-gray-500 text-xs">Método:</span><p class="text-sm">{{ (f.metodoPago || 'Efectivo').toUpperCase() }}</p></div>
+          <div><span class="text-gray-500 text-xs">Comisión (10%):</span><p class="text-sm">Bs. {{ f.comision?.toFixed(2) || (f.monto * 0.1).toFixed(2) }}</p></div>
+          <div><span class="text-gray-500 text-xs">Total:</span><p class="text-sm font-medium">Bs. {{ f.total?.toFixed(2) || (f.monto * 1.1).toFixed(2) }}</p></div>
         </div>
         <div style="display:flex;gap:0.5rem;margin-top:0.75rem">
-          <button class="btn btn-outline btn-sm" style="flex:1">👁 Ver</button>
-          <button *ngIf="!f.enviada" class="btn btn-primary btn-sm" style="flex:1">📤 Enviar</button>
-          <button class="btn btn-outline btn-sm">🖨</button>
+          <button class="btn btn-outline btn-sm" style="flex:1" (click)="verFactura(f)">👁 Ver</button>
+          <button *ngIf="!f.enviada" class="btn btn-primary btn-sm" style="flex:1" (click)="enviarFactura(f)" [disabled]="enviandoFactura() === f.id">
+            <span *ngIf="enviandoFactura() !== f.id">📤 Enviar</span>
+            <span *ngIf="enviandoFactura() === f.id">Enviando...</span>
+          </button>
+          <button class="btn btn-outline btn-sm" (click)="imprimirFactura(f)">🖨</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Ver Factura -->
+    <div *ngIf="facturaSeleccionada()" class="modal-overlay" (click)="cerrarModalFactura()">
+      <div class="modal-card card" style="max-width:500px" (click)="$event.stopPropagation()">
+        <div class="modal-content">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+            <h3>Factura #{{ facturaSeleccionada()?.id?.slice(-8) }}</h3>
+            <button class="btn btn-ghost btn-icon" (click)="cerrarModalFactura()">✕</button>
+          </div>
+          <div style="background:#f9fafb;padding:1rem;border-radius:0.5rem;margin-bottom:1rem">
+            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem">
+              <img [src]="facturaSeleccionada()?.cliente?.foto || 'https://i.pravatar.cc/150?img=12'" style="width:48px;height:48px;border-radius:50%" />
+              <div>
+                <p class="font-medium">{{ facturaSeleccionada()?.cliente?.nombre || 'Cliente' }}</p>
+                <p class="text-sm text-gray-500">{{ facturaSeleccionada()?.cliente?.telefono }}</p>
+              </div>
+            </div>
+            <hr class="separator" />
+            <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
+              <span class="text-gray-500">Monto:</span>
+              <span>Bs. {{ facturaSeleccionada()?.monto?.toFixed(2) }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
+              <span class="text-gray-500">Comisión (10%):</span>
+              <span>Bs. {{ facturaSeleccionada()?.comision?.toFixed(2) || ((facturaSeleccionada()?.monto || 0) * 0.1).toFixed(2) }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-weight:500">
+              <span>Total:</span>
+              <span>Bs. {{ facturaSeleccionada()?.total?.toFixed(2) || ((facturaSeleccionada()?.monto || 0) * 1.1).toFixed(2) }}</span>
+            </div>
+            <hr class="separator" />
+            <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
+              <span class="text-gray-500">Método de pago:</span>
+              <span>{{ (facturaSeleccionada()?.metodoPago || 'Efectivo').toUpperCase() }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span class="text-gray-500">Estado:</span>
+              <span [style.color]="facturaSeleccionada()?.enviada ? '#16a34a' : '#ca8a04'">{{ facturaSeleccionada()?.enviada ? 'Enviada' : 'Pendiente' }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span class="text-gray-500">Fecha:</span>
+              <span>{{ facturaSeleccionada()?.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:0.5rem">
+            <button class="btn btn-outline" style="flex:1" (click)="imprimirFactura(facturaSeleccionada()!)">🖨 Imprimir</button>
+            <button *ngIf="!facturaSeleccionada()?.enviada" class="btn btn-primary" style="flex:1" (click)="enviarFactura(facturaSeleccionada()!); cerrarModalFactura()">📤 Enviar</button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Reportes -->
-  <div *ngIf="tab() === 'reportes'" class="card" style="padding:1.5rem">
+  <div *ngIf="tab() === 'reportes' && !loading()" class="card" style="padding:1.5rem">
     <h3 style="margin-bottom:1rem">Exportar Reportes</h3>
     <div style="margin-bottom:1rem">
       <label class="label">Período</label>
-      <select class="select" style="margin-top:0.25rem">
-        <option value="hoy">Hoy</option><option value="semana">Esta Semana</option><option value="mes">Este Mes</option>
+      <select [(ngModel)]="periodoReporte" (change)="actualizarReporte()" class="select" style="margin-top:0.25rem">
+        <option value="hoy">Hoy</option>
+        <option value="semana">Esta Semana</option>
+        <option value="mes">Este Mes</option>
       </select>
     </div>
     <hr class="separator" style="margin:1rem 0" />
     <div style="display:flex;flex-direction:column;gap:0.75rem">
-      <button class="btn btn-outline" style="justify-content:flex-start">📄 Exportar como PDF</button>
-      <button class="btn btn-outline" style="justify-content:flex-start">📊 Exportar como Excel</button>
-      <button class="btn btn-outline" style="justify-content:flex-start">🖨 Formato Imprimible</button>
+      <button class="btn btn-outline" style="justify-content:flex-start;display:flex;align-items:center;gap:0.5rem" (click)="exportarPDF()" [disabled]="exportando()">
+        <span>📄</span>
+        <span>{{ exportando() === 'pdf' ? 'Generando PDF...' : 'Exportar como PDF' }}</span>
+      </button>
+      <button class="btn btn-outline" style="justify-content:flex-start;display:flex;align-items:center;gap:0.5rem" (click)="exportarExcel()" [disabled]="exportando()">
+        <span>📊</span>
+        <span>{{ exportando() === 'excel' ? 'Generando Excel...' : 'Exportar como Excel' }}</span>
+      </button>
+      <button class="btn btn-outline" style="justify-content:flex-start;display:flex;align-items:center;gap:0.5rem" (click)="exportarImprimible()" [disabled]="exportando()">
+        <span>🖨</span>
+        <span>{{ exportando() === 'print' ? 'Preparando...' : 'Formato Imprimible' }}</span>
+      </button>
     </div>
     <div class="ia-panel" style="margin-top:1rem">
-      <h4 class="text-sm font-medium" style="margin-bottom:0.5rem">Resumen</h4>
+      <h4 class="text-sm font-medium" style="margin-bottom:0.5rem">Resumen del Período</h4>
       <div class="text-sm" style="display:flex;flex-direction:column;gap:0.25rem">
-        <div style="display:flex;justify-content:space-between"><span class="text-gray-600">Facturas:</span><span>{{ facturas.length }}</span></div>
+        <div style="display:flex;justify-content:space-between"><span class="text-gray-600">Facturas:</span><span>{{ stats()?.total_facturas || facturas().length }}</span></div>
         <div style="display:flex;justify-content:space-between"><span class="text-gray-600">Ingresos:</span><span>Bs. {{ ingresosTotal.toFixed(2) }}</span></div>
         <div style="display:flex;justify-content:space-between"><span class="text-gray-600">Comisiones:</span><span>Bs. {{ (ingresosTotal * 0.1).toFixed(2) }}</span></div>
+        <div style="display:flex;justify-content:space-between"><span class="text-gray-600">Neto:</span><span>Bs. {{ (ingresosTotal * 0.9).toFixed(2) }}</span></div>
       </div>
     </div>
   </div>
@@ -1034,6 +1257,12 @@ export class SeguimientoViewComponent implements OnInit, OnDestroy {
 .ia-panel { background:linear-gradient(135deg,#eff6ff,#f0fdf4); padding:1rem; border-radius:0.5rem; }
 .av40 { width:40px; height:40px; border-radius:50%; object-fit:cover; }
 .bg-gray-50 { background:#f9fafb; } .rounded-lg { border-radius:0.5rem; }
+.spinner { width:40px; height:40px; border:3px solid #e5e7eb; border-top-color:#3b82f6; border-radius:50%; animation:spin 1s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:50; padding:1rem; }
+.modal-card { max-width:500px; width:100%; max-height:90vh; overflow-y:auto; }
+.modal-content { padding:1.5rem; }
+.separator { border:none; border-top:1px solid #e5e7eb; margin:0.75rem 0; }
   `]
 })
 export class PagosViewComponent implements OnInit {
@@ -1041,34 +1270,75 @@ export class PagosViewComponent implements OnInit {
   mockData = inject(MockDataService);
   facturasService = inject(FacturasService);
   pagosService = inject(PagosService);
-  tab = signal('confirmar');
+  reportesService = inject(ReportesService);
+
+  tab = signal('facturas');
   monto = '';
   metodoPago = 'qr';
   comprobanteSubido = false;
+  periodoReporte = 'hoy';
+  busqueda = '';
 
   facturas = signal<Factura[]>([]);
+  facturasFiltradas = signal<Factura[]>([]);
+  filtroEstado = signal<'todos' | 'enviadas' | 'pendientes'>('todos');
   loading = signal(false);
   error = signal<string | null>(null);
   stats = signal<any>(null);
+  facturaSeleccionada = signal<Factura | null>(null);
+  enviandoFactura = signal<string | null>(null);
+  exportando = signal<string | null>(null);
 
   ngOnInit() {
-    this.cargarFacturas();
+    this.cargarDatos();
   }
 
-  async cargarFacturas() {
+  async cargarDatos() {
     this.loading.set(true);
+    this.error.set(null);
     try {
       const [facturasData, statsData] = await Promise.all([
         this.facturasService.listar().toPromise(),
         this.facturasService.getStats().toPromise()
       ]);
       this.facturas.set(facturasData ?? []);
+      this.filtrarFacturas();
       this.stats.set(statsData);
     } catch (e) {
+      this.error.set('Error al cargar los datos');
       this.facturas.set([...this.mockData.facturas]);
+      this.filtrarFacturas();
     } finally {
       this.loading.set(false);
     }
+  }
+
+  filtrarFacturas() {
+    let filtradas = this.facturas();
+
+    // Filtro por búsqueda
+    if (this.busqueda.trim()) {
+      const termino = this.busqueda.toLowerCase();
+      filtradas = filtradas.filter(f =>
+        f.cliente?.nombre?.toLowerCase().includes(termino) ||
+        f.cliente?.telefono?.includes(termino) ||
+        f.id?.toLowerCase().includes(termino)
+      );
+    }
+
+    // Filtro por estado
+    if (this.filtroEstado() === 'enviadas') {
+      filtradas = filtradas.filter(f => f.enviada);
+    } else if (this.filtroEstado() === 'pendientes') {
+      filtradas = filtradas.filter(f => !f.enviada);
+    }
+
+    this.facturasFiltradas.set(filtradas);
+  }
+
+  setFiltroEstado(estado: 'todos' | 'enviadas' | 'pendientes') {
+    this.filtroEstado.set(estado);
+    this.filtrarFacturas();
   }
 
   get ingresosTotal() {
@@ -1095,23 +1365,222 @@ export class PagosViewComponent implements OnInit {
     this.error.set(null);
 
     try {
-      console.log('[PAGOS] 📤 Confirmando pago para solicitud:', solicitud.id, 'monto:', montoNum);
       const response = await this.pagosService.confirmarPago(solicitud.id, montoNum).toPromise();
-      console.log('[PAGOS] ✅ Confirmación exitosa:', response);
-
-      // Notificar éxito
       this.state.confirmarPago();
       this.monto = '';
       this.comprobanteSubido = false;
-      this.cargarFacturas();
-
+      await this.cargarDatos();
       alert(`Monto confirmado: Bs. ${response?.total || montoNum}. El cliente ha sido notificado para proceder al pago.`);
     } catch (err: any) {
-      console.error('[PAGOS] ❌ Error al confirmar pago:', err);
       this.error.set('Error al confirmar pago: ' + (err.error?.detail || err.message));
     } finally {
       this.loading.set(false);
     }
+  }
+
+  verFactura(factura: Factura) {
+    this.facturaSeleccionada.set(factura);
+  }
+
+  cerrarModalFactura() {
+    this.facturaSeleccionada.set(null);
+  }
+
+  async enviarFactura(factura: Factura) {
+    if (!factura.id) return;
+    this.enviandoFactura.set(factura.id);
+    try {
+      await this.facturasService.enviar(factura.id).toPromise();
+      await this.cargarDatos();
+      alert('Factura marcada como enviada');
+    } catch (err: any) {
+      alert('Error al enviar factura: ' + (err.error?.detail || err.message));
+    } finally {
+      this.enviandoFactura.set(null);
+    }
+  }
+
+  imprimirFactura(factura: Factura) {
+    const ventana = window.open('', '_blank');
+    if (!ventana) return;
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Factura #${factura.id?.slice(-8)}</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2rem; max-width: 600px; margin: 0 auto; }
+    .header { text-align: center; border-bottom: 2px solid #2563eb; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+    .header h1 { color: #2563eb; margin: 0; }
+    .header p { color: #6b7280; margin: 0.5rem 0; }
+    .section { margin-bottom: 1.5rem; }
+    .section h3 { color: #374151; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.5rem; }
+    .row { display: flex; justify-content: space-between; padding: 0.5rem 0; }
+    .row.total { font-weight: bold; font-size: 1.2rem; border-top: 2px solid #2563eb; padding-top: 1rem; margin-top: 1rem; }
+    .badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; }
+    .badge-enviada { background: #dcfce7; color: #166534; }
+    .badge-pendiente { background: #fef3c7; color: #92400e; }
+    .footer { text-align: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 0.875rem; }
+    @media print { .no-print { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>ASISTEGO</h1>
+    <p>Santa Cruz, Bolivia</p>
+    <p>Factura #${factura.id?.slice(-8).toUpperCase()}</p>
+  </div>
+
+  <div class="section">
+    <h3>Cliente</h3>
+    <p><strong>${factura.cliente?.nombre || 'Cliente'}</strong></p>
+    <p>${factura.cliente?.telefono || ''}</p>
+    <p>${factura.cliente?.email || ''}</p>
+  </div>
+
+  <div class="section">
+    <h3>Detalle del Servicio</h3>
+    <div class="row"><span>Monto del servicio:</span><span>Bs. ${factura.monto.toFixed(2)}</span></div>
+    <div class="row"><span>Comisión (10%):</span><span>Bs. ${(factura.comision || factura.monto * 0.1).toFixed(2)}</span></div>
+    <div class="row total"><span>Total:</span><span>Bs. ${(factura.total || factura.monto * 1.1).toFixed(2)}</span></div>
+  </div>
+
+  <div class="section">
+    <h3>Información de Pago</h3>
+    <div class="row"><span>Método:</span><span>${(factura.metodoPago || 'Efectivo').toUpperCase()}</span></div>
+    <div class="row"><span>Estado:</span><span class="badge ${factura.enviada ? 'badge-enviada' : 'badge-pendiente'}">${factura.enviada ? 'Enviada' : 'Pendiente'}</span></div>
+    <div class="row"><span>Fecha:</span><span>${new Date(factura.fecha || Date.now()).toLocaleString('es-BO')}</span></div>
+  </div>
+
+  <div class="footer">
+    <p>Gracias por confiar en Asistego</p>
+    <p>Servicio de asistencia vehicular 24/7</p>
+    <button class="no-print" onclick="window.print()" style="margin-top:1rem;padding:0.5rem 1rem;background:#2563eb;color:white;border:none;border-radius:0.375rem;cursor:pointer;">Imprimir Factura</button>
+  </div>
+</body>
+</html>`;
+    ventana.document.write(html);
+    ventana.document.close();
+  }
+
+  actualizarReporte() {
+    // La selección de período está lista para cuando se conecte con el backend
+    console.log('Período seleccionado:', this.periodoReporte);
+  }
+
+  async exportarPDF() {
+    this.exportando.set('pdf');
+    try {
+      const facturas = this.facturas();
+      const ventana = window.open('', '_blank');
+      if (!ventana) throw new Error('No se pudo abrir ventana');
+
+      let facturasHtml = facturas.map(f => `
+        <tr>
+          <td>${f.id?.slice(-8).toUpperCase()}</td>
+          <td>${f.cliente?.nombre || 'Cliente'}</td>
+          <td>${(f.metodoPago || 'Efectivo').toUpperCase()}</td>
+          <td>Bs. ${f.monto.toFixed(2)}</td>
+          <td>Bs. ${(f.comision || f.monto * 0.1).toFixed(2)}</td>
+          <td>Bs. ${(f.total || f.monto * 1.1).toFixed(2)}</td>
+          <td>${f.enviada ? '✓ Enviada' : '⏳ Pendiente'}</td>
+        </tr>
+      `).join('');
+
+      const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Reporte de Facturas - Asistego</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2rem; }
+    .header { text-align: center; border-bottom: 2px solid #2563eb; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+    h1 { color: #2563eb; margin: 0; }
+    .meta { color: #6b7280; margin: 0.5rem 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+    th { background: #eff6ff; color: #1e40af; font-weight: 600; }
+    tr:hover { background: #f9fafb; }
+    .total { text-align: right; font-size: 1.1rem; font-weight: bold; margin-top: 1rem; }
+    .no-print { margin-top: 2rem; text-align: center; }
+    button { padding: 0.75rem 1.5rem; background: #dc2626; color: white; border: none; border-radius: 0.375rem; cursor: pointer; margin: 0.25rem; }
+    .btn-print { background: #2563eb; }
+    @media print { .no-print { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>ASISTEGO - Reporte de Facturas</h1>
+    <p class="meta">Santa Cruz, Bolivia</p>
+    <p class="meta">Período: ${this.periodoReporte.toUpperCase()} | Generado: ${new Date().toLocaleString('es-BO')}</p>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Factura</th>
+        <th>Cliente</th>
+        <th>Método</th>
+        <th>Monto</th>
+        <th>Comisión</th>
+        <th>Total</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>${facturasHtml}</tbody>
+  </table>
+  <p class="total">Total Ingresos: Bs. ${this.ingresosTotal.toFixed(2)} | Comisiones: Bs. ${(this.ingresosTotal * 0.1).toFixed(2)} | Neto: Bs. ${(this.ingresosTotal * 0.9).toFixed(2)}</p>
+  <div class="no-print">
+    <button class="btn-print" onclick="window.print()">🖨 Imprimir</button>
+    <button onclick="window.close()">✕ Cerrar</button>
+  </div>
+</body>
+</html>`;
+      ventana.document.write(html);
+      ventana.document.close();
+    } catch (err) {
+      alert('Error al generar PDF');
+    } finally {
+      this.exportando.set(null);
+    }
+  }
+
+  async exportarExcel() {
+    this.exportando.set('excel');
+    try {
+      const facturas = this.facturas();
+      const csv = [
+        ['Factura', 'Cliente', 'Telefono', 'Email', 'Metodo Pago', 'Monto', 'Comision', 'Total', 'Estado', 'Fecha'].join(','),
+        ...facturas.map(f => [
+          f.id?.slice(-8).toUpperCase(),
+          `"${f.cliente?.nombre || 'Cliente'}"`,
+          f.cliente?.telefono || '',
+          f.cliente?.email || '',
+          f.metodoPago || 'Efectivo',
+          f.monto.toFixed(2),
+            (f.comision || f.monto * 0.1).toFixed(2),
+            (f.total || f.monto * 1.1).toFixed(2),
+          f.enviada ? 'Enviada' : 'Pendiente',
+          new Date(f.fecha || Date.now()).toLocaleDateString('es-BO')
+        ].join(','))
+      ].join('\n');
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `asistego-facturas-${this.periodoReporte}-${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+    } catch (err) {
+      alert('Error al exportar Excel');
+    } finally {
+      this.exportando.set(null);
+    }
+  }
+
+  exportarImprimible() {
+    this.exportando.set('print');
+    this.exportarPDF(); // Usa el mismo formato pero enfocado en impresión
+    setTimeout(() => this.exportando.set(null), 1000);
   }
 }
 
@@ -1123,7 +1592,7 @@ export class PagosViewComponent implements OnInit {
   template: `
 <div class="view-padded">
   <div style="display:flex;align-items:center;justify-content:space-between">
-    <div><h2>Marketplace de Repuestos</h2><p class="text-sm text-gray-500">Gestiona tu inventario y solicitudes de clientes</p></div>
+    <div><h2>Repuestos</h2><p class="text-sm text-gray-500">Santa Cruz, Bolivia - Gestiona tu inventario</p></div>
     <button class="btn btn-primary" (click)="abrirModalCrear()">+ Agregar Repuesto</button>
   </div>
 
@@ -1135,16 +1604,8 @@ export class PagosViewComponent implements OnInit {
     {{ error() }}
   </div>
 
-  <div class="tabs-list">
-    <button class="tabs-trigger" [class.active]="tab() === 'inventario'" (click)="tab.set('inventario')">Mi Inventario</button>
-    <button class="tabs-trigger" [class.active]="tab() === 'solicitudes'" (click)="tab.set('solicitudes')">
-      Solicitudes de Clientes
-      <span *ngIf="pendienteCount > 0" class="badge badge-red" style="margin-left:0.5rem">{{ pendienteCount }}</span>
-    </button>
-  </div>
-
   <!-- Inventario -->
-  <ng-container *ngIf="tab() === 'inventario'">
+  <ng-container>
     <div class="card" style="padding:1rem">
       <div style="display:flex;gap:0.75rem">
         <div style="flex:1;position:relative">
@@ -1195,36 +1656,6 @@ export class PagosViewComponent implements OnInit {
       <div style="font-size:3rem;margin-bottom:1rem">📦</div>
       <h3>No hay repuestos</h3>
       <p class="text-sm text-gray-500">Agrega tu primer repuesto al inventario</p>
-    </div>
-  </ng-container>
-
-  <!-- Solicitudes -->
-  <ng-container *ngIf="tab() === 'solicitudes'">
-    <div *ngFor="let sol of mockData.solicitudesRepuesto" class="card" style="padding:1.5rem">
-      <ng-container *ngIf="getRepuesto(sol.repuestoId) as r">
-        <div style="display:flex;gap:1.5rem">
-          <div style="flex-shrink:0">
-            <img *ngIf="r.imagen" [src]="r.imagen" [alt]="r.nombre" style="width:128px;height:128px;object-fit:cover;border-radius:0.5rem" />
-            <div *ngIf="!r.imagen" style="width:128px;height:128px;background:#f3f4f6;border-radius:0.5rem;display:flex;align-items:center;justify-content:center;font-size:3rem">📦</div>
-          </div>
-          <div style="flex:1">
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:0.75rem">
-              <div><h3>{{ r.nombre }}</h3><p class="text-sm text-gray-500">Cliente #{{ sol.clienteId }}</p></div>
-              <span class="badge" [class.badge-yellow]="sol.estado === 'pendiente'" [class.badge-green]="sol.estado === 'aceptada'">{{ sol.estado }}</span>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
-              <div><p class="text-xs text-gray-500">Vehículo</p><p class="text-sm">{{ sol.vehiculo.marca }} {{ sol.vehiculo.modelo }} {{ sol.vehiculo.anio }}</p></div>
-              <div><p class="text-xs text-gray-500">Cantidad</p><p class="text-sm">{{ sol.cantidad }} unidad(es)</p></div>
-              <div><p class="text-xs text-gray-500">Precio</p><p class="text-sm">Bs. {{ r.precio }}</p></div>
-              <div><p class="text-xs text-gray-500">Total</p><p class="text-sm">Bs. {{ r.precio * sol.cantidad }}</p></div>
-            </div>
-            <div *ngIf="sol.estado === 'pendiente'" style="display:flex;gap:0.5rem">
-              <button class="btn btn-outline" style="flex:1">✕ Rechazar</button>
-              <button class="btn btn-primary" style="flex:1" [disabled]="!r.disponible">✓ Aceptar</button>
-            </div>
-          </div>
-        </div>
-      </ng-container>
     </div>
   </ng-container>
 </div>
@@ -1307,7 +1738,6 @@ export class PagosViewComponent implements OnInit {
 .rep-card { overflow:hidden; }
 .rep-img { width:100%; height:192px; object-fit:cover; }
 .rep-placeholder { width:100%; height:192px; background:#f3f4f6; display:flex; align-items:center; justify-content:center; font-size:4rem; }
-.badge-yellow { background:#eab308; color:white; }
 .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000; padding:1rem; }
 .modal-card { animation:modalIn 0.2s ease-out; }
 @keyframes modalIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
@@ -1318,7 +1748,6 @@ export class PagosViewComponent implements OnInit {
 export class RepuestosViewComponent implements OnInit {
   mockData = inject(MockDataService);
   repuestosService = inject(RepuestosService);
-  tab = signal('inventario');
   busqueda = '';
   categoria = 'todas';
 
@@ -1497,8 +1926,6 @@ export class RepuestosViewComponent implements OnInit {
     }
   }
 
-  get pendienteCount() { return this.mockData.solicitudesRepuesto.filter(s => s.estado === 'pendiente').length; }
-  getRepuesto(id: string) { return this.repuestos().find(r => r.id === id) || this.mockData.repuestos.find(r => r.id === id); }
 }
 
 // ==================== CLIENTES VIEW ====================
@@ -1814,55 +2241,73 @@ export class HistorialViewComponent implements OnInit {
 <div style="flex:1;padding:1.5rem;overflow-y:auto">
   <div style="max-width:896px;margin:0 auto;display:flex;flex-direction:column;gap:1.5rem">
     <div style="display:flex;align-items:center;justify-content:space-between">
-      <div><h2>Notificaciones</h2><p class="text-sm text-gray-500">{{ noLeidas > 0 ? ('Tienes ' + noLeidas + ' sin leer') : 'Todas leídas' }}</p></div>
-      <button *ngIf="noLeidas > 0" class="btn btn-outline" (click)="marcarTodas()">✓ Marcar todas como leídas</button>
+      <div><h2>Solicitudes Cercanas</h2><p class="text-sm text-gray-500">{{ solicitudes().length }} solicitudes pendientes</p></div>
     </div>
     <div style="display:flex;flex-direction:column;gap:0.75rem">
-      <div *ngFor="let n of notifs()" class="card notif-card" [class.notif-unread]="!n.leida" (click)="marcar(n.id)">
+      <div *ngFor="let s of solicitudes()" class="card notif-card" (click)="verSolicitud(s)">
         <div style="display:flex;gap:1rem">
-          <div class="notif-icon" [style.background]="iconBg(n.tipo)">{{ iconEmoji(n.tipo) }}</div>
+          <div class="notif-icon" [style.background]="s.tipo === 'grua' ? '#fee2e2' : '#dbeafe'">
+            {{ s.tipo === 'grua' ? '🚛' : '🚗' }}
+          </div>
           <div style="flex:1;min-width:0">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:0.25rem">
-              <p class="font-medium text-gray-900">{{ n.titulo }}</p>
-              <div *ngIf="!n.leida" style="width:8px;height:8px;background:#2563eb;border-radius:50%;flex-shrink:0;margin-top:0.375rem"></div>
+              <p class="font-medium text-gray-900">{{ s.cliente.nombre }}</p>
+              <span class="text-xs font-medium" [style.color]="s.tipo === 'grua' ? '#dc2626' : '#2563eb'">{{ s.distancia }} km</span>
             </div>
-            <p class="text-sm text-gray-600" style="margin-bottom:0.5rem">{{ n.mensaje }}</p>
+            <p class="text-sm text-gray-600" style="margin-bottom:0.5rem">{{ s.analisisIA?.tipoProblema || s.problema || s.descripcion }}</p>
             <div style="display:flex;align-items:center;gap:0.75rem">
-              <span class="text-xs text-gray-500">{{ formatTime(n.timestamp) }}</span>
-              <span class="badge badge-outline text-xs" [style.color]="iconColor(n.tipo)" [style.border-color]="iconColor(n.tipo)">{{ n.tipo }}</span>
+              <span class="text-xs text-gray-500">{{ formatTime(s.timestamp) }}</span>
+              <span class="badge badge-outline text-xs" [style.color]="s.tipo === 'grua' ? '#dc2626' : '#2563eb'" [style.border-color]="s.tipo === 'grua' ? '#dc2626' : '#2563eb'">{{ s.tipo === 'grua' ? 'GRÚA' : 'NORMAL' }}</span>
+              <span class="badge badge-outline text-xs" style="color:#6b7280;border-color:#6b7280">{{ s.vehiculo.marca }} {{ s.vehiculo.modelo }}</span>
             </div>
           </div>
         </div>
       </div>
-      <div *ngIf="notifs().length === 0" style="text-align:center;padding:3rem;color:#6b7280">
+      <div *ngIf="solicitudes().length === 0" style="text-align:center;padding:3rem;color:#6b7280">
         <div style="font-size:3rem;margin-bottom:1rem">🔔</div>
-        <h3>No hay notificaciones</h3>
+        <h3>No hay solicitudes cercanas</h3>
+        <p class="text-sm">Las nuevas solicitudes aparecerán aquí</p>
       </div>
     </div>
   </div>
 </div>`,
   styles: [`
 .notif-card { padding:1rem; cursor:pointer; transition:all 0.15s; }
-.notif-card:hover { box-shadow:0 4px 12px rgba(0,0,0,0.08); }
-.notif-unread { background:#eff6ff; border-color:#bfdbfe; }
+.notif-card:hover { box-shadow:0 4px 12px rgba(0,0,0,0.08); background:#eff6ff; border-color:#bfdbfe; }
 .notif-icon { width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; }
   `]
 })
-export class NotificacionesViewComponent {
+export class NotificacionesViewComponent implements OnInit, OnDestroy {
   state = inject(AppStateService);
-  notifs = this.state.notificaciones;
+  solicitudesService = inject(SolicitudesService);
 
-  get noLeidas() { return this.notifs().filter(n => !n.leida).length; }
+  solicitudes = signal<Solicitud[]>([]);
+  private pollingInterval: any;
 
-  marcar(id: string) { this.state.notificaciones.update(ns => ns.map(n => n.id === id ? { ...n, leida: true } : n)); }
-  marcarTodas() { this.state.notificaciones.update(ns => ns.map(n => ({ ...n, leida: true }))); }
+  ngOnInit(): void {
+    this.cargarSolicitudes();
+    this.pollingInterval = setInterval(() => this.cargarSolicitudes(), 2000);
+  }
 
-  iconEmoji(tipo: string) { return { solicitud: '🚗', repuesto: '📦', pago: '💰', mensaje: '💬' }[tipo] ?? '🔔'; }
-  iconBg(tipo: string) { return { solicitud: '#dbeafe', repuesto: '#dcfce7', pago: '#f3e8ff', mensaje: '#ffedd5' }[tipo] ?? '#f3f4f6'; }
-  iconColor(tipo: string) { return { solicitud: '#2563eb', repuesto: '#16a34a', pago: '#9333ea', mensaje: '#ea580c' }[tipo] ?? '#6b7280'; }
+  ngOnDestroy(): void {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+    }
+  }
+
+  cargarSolicitudes(): void {
+    this.solicitudesService.listar({ pendientes: true }).subscribe({
+      next: (data) => this.solicitudes.set(data),
+      error: () => this.solicitudes.set([])
+    });
+  }
+
+  verSolicitud(s: Solicitud): void {
+    this.state.seleccionarSolicitudPendiente(s);
+  }
 
   formatTime(d: Date) {
-    const diff = (Date.now() - d.getTime()) / 60000;
+    const diff = (Date.now() - new Date(d).getTime()) / 60000;
     if (diff < 1) return 'Ahora mismo';
     if (diff < 60) return `Hace ${Math.floor(diff)} min`;
     if (diff < 1440) return `Hace ${Math.floor(diff / 60)} h`;
@@ -2257,6 +2702,8 @@ export class PersonalViewComponent implements OnInit {
 }
 
 // ==================== PERFIL TALLER VIEW ====================
+declare const L: any;
+
 @Component({
   selector: 'app-perfil-taller-view',
   standalone: true,
@@ -2318,7 +2765,16 @@ export class PersonalViewComponent implements OnInit {
       <ng-container *ngIf="editing">
         <div style="display:flex;flex-direction:column;gap:1rem">
           <div><label class="label">Nombre del Taller</label><input class="input" [ngModel]="t.nombre" (ngModelChange)="updateTaller('nombre', $event)" style="margin-top:0.25rem" /></div>
-          <div><label class="label">Ubicación</label><input class="input" [ngModel]="t.ubicacion" (ngModelChange)="updateTaller('ubicacion', $event)" style="margin-top:0.25rem" /></div>
+          <div>
+            <label class="label">Ubicación</label>
+            <div style="display:flex;gap:0.5rem;margin-top:0.25rem">
+              <input class="input" [ngModel]="t.direccion" (ngModelChange)="updateTaller('direccion', $event)" style="flex:1" />
+              <button class="btn btn-outline" (click)="abrirSelectorUbicacion()" style="display:flex;align-items:center;gap:0.5rem;white-space:nowrap">
+                <svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Elegir en mapa
+              </button>
+            </div>
+          </div>
           <div><label class="label">Teléfono</label><input class="input" [ngModel]="t.telefono" (ngModelChange)="updateTaller('telefono', $event)" style="margin-top:0.25rem" /></div>
           <div><label class="label">Email</label><input type="email" class="input" [ngModel]="t.email" (ngModelChange)="updateTaller('email', $event)" style="margin-top:0.25rem" /></div>
           <div><label class="label">Descripción</label><textarea class="input" [ngModel]="t.descripcion" (ngModelChange)="updateTaller('descripcion', $event)" rows="3" style="margin-top:0.25rem"></textarea></div>
@@ -2352,6 +2808,31 @@ export class PersonalViewComponent implements OnInit {
         <button class="btn btn-outline" style="justify-content:flex-start;display:flex;align-items:center;gap:0.5rem"><svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Configurar Notificaciones</button>
         <hr class="separator" />
         <button class="btn btn-outline" style="justify-content:flex-start;color:#dc2626;display:flex;align-items:center;gap:0.5rem" (click)="state.logout()"><svg style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Cerrar Sesión</button>
+      </div>
+    </div>
+
+    <!-- Modal Selector de Ubicación -->
+    <div *ngIf="showMapaModal()" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000">
+      <div style="background:white;border-radius:1rem;padding:1.5rem;width:100%;max-width:700px;margin:1rem;display:flex;flex-direction:column;gap:1rem">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <h3 style="margin:0">Seleccionar Ubicación del Taller</h3>
+          <button class="btn btn-ghost btn-icon" (click)="cerrarSelectorUbicacion()">
+            <svg style="width:20px;height:20px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <p class="text-sm text-gray-500">Haz clic en el mapa para seleccionar la ubicación de tu taller</p>
+        <div id="mapa-ubicacion-taller" style="width:100%;height:400px;border-radius:0.5rem;background:#e5e7eb"></div>
+        <div *ngIf="ubicacionTemporal()" style="background:#f0fdf4;border:1px solid #bbf7d0;padding:0.75rem;border-radius:0.5rem">
+          <p class="text-sm" style="color:#15803d;margin:0">
+            <strong>Ubicación seleccionada:</strong> {{ ubicacionTemporal()?.direccion }}
+          </p>
+        </div>
+        <div style="display:flex;gap:0.75rem;padding-top:0.5rem">
+          <button class="btn btn-primary" style="flex:1" (click)="confirmarUbicacion()" [disabled]="!ubicacionTemporal()">
+            Confirmar Ubicación
+          </button>
+          <button class="btn btn-outline" style="flex:1" (click)="cerrarSelectorUbicacion()">Cancelar</button>
+        </div>
       </div>
     </div>
 
@@ -2421,6 +2902,71 @@ export class PerfilTallerViewComponent implements OnInit {
   currentPassword = '';
   newPassword = '';
   confirmNewPassword = '';
+
+  // Modal selector de ubicación
+  showMapaModal = signal(false);
+  mapaUbicacion: any = null;
+  mapaMarker: any = null;
+  ubicacionTemporal = signal<{lat: number, lng: number, direccion: string} | null>(null);
+
+  abrirSelectorUbicacion() {
+    this.showMapaModal.set(true);
+    this.ubicacionTemporal.set(null);
+    // Inicializar mapa después de que el DOM se actualice
+    setTimeout(() => this.inicializarMapaUbicacion(), 100);
+  }
+
+  cerrarSelectorUbicacion() {
+    this.showMapaModal.set(false);
+    this.ubicacionTemporal.set(null);
+    if (this.mapaUbicacion) {
+      this.mapaUbicacion.remove();
+      this.mapaUbicacion = null;
+    }
+  }
+
+  confirmarUbicacion() {
+    const ubicacion = this.ubicacionTemporal();
+    if (ubicacion) {
+      this.updateTaller('direccion', ubicacion.direccion);
+      this.updateTaller('lat', ubicacion.lat);
+      this.updateTaller('lng', ubicacion.lng);
+      this.cerrarSelectorUbicacion();
+    }
+  }
+
+  private inicializarMapaUbicacion() {
+    if (typeof L === 'undefined') return;
+
+    const container = document.getElementById('mapa-ubicacion-taller');
+    if (!container) return;
+
+    // Santa Cruz, Bolivia por defecto
+    const defaultLat = -17.7833;
+    const defaultLng = -63.1821;
+
+    this.mapaUbicacion = L.map('mapa-ubicacion-taller').setView([defaultLat, defaultLng], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(this.mapaUbicacion);
+
+    // Manejar clic en el mapa
+    this.mapaUbicacion.on('click', async (e: any) => {
+      const { lat, lng } = e.latlng;
+
+      // Actualizar o crear marcador
+      if (this.mapaMarker) {
+        this.mapaMarker.setLatLng([lat, lng]);
+      } else {
+        this.mapaMarker = L.marker([lat, lng]).addTo(this.mapaUbicacion);
+      }
+
+      // Obtener dirección aproximada (en producción usar geocoding)
+      const direccion = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+      this.ubicacionTemporal.set({ lat, lng, direccion });
+    });
+  }
 
   openChangePasswordModal() {
     this.showChangePasswordModal.set(true);
@@ -2515,11 +3061,13 @@ export class PerfilTallerViewComponent implements OnInit {
       // Guardar otros datos del taller
       await this.tallerService.actualizar({
         nombre: this.taller().nombre,
-        ubicacion: this.taller().ubicacion,
+        direccion: this.taller().direccion,
         telefono: this.taller().telefono,
         email: this.taller().email,
         descripcion: this.taller().descripcion,
-        foto: this.taller().foto
+        foto: this.taller().foto,
+        lat: this.taller().lat,
+        lng: this.taller().lng
       }).toPromise();
 
       // Limpiar estado de foto temporal
@@ -2571,7 +3119,7 @@ export class PerfilTallerViewComponent implements OnInit {
     const t = this.taller();
     if (!t) return [];
     return [
-      { icon: 'location', label: 'Ubicación', value: t.ubicacion || '' },
+      { icon: 'location', label: 'Ubicación', value: t.direccion || '' },
       { icon: 'phone', label: 'Teléfono', value: t.telefono || '' },
       { icon: 'email', label: 'Email', value: t.email || '' },
     ];

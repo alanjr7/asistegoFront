@@ -1,6 +1,8 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppStateService } from '../../services/app-state.service';
+import { TallerService } from '../../services/taller.service';
+import { Taller } from '../../models/types.model';
 
 interface NavItem {
   id: string;
@@ -15,8 +17,23 @@ interface NavItem {
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css'],
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit {
   state = inject(AppStateService);
+  tallerService = inject(TallerService);
+
+  taller = signal<Taller | null>(null);
+  nombreTaller = computed(() => this.taller()?.nombre ?? 'AsisteGO');
+
+  ngOnInit(): void {
+    this.cargarTaller();
+  }
+
+  cargarTaller(): void {
+    this.tallerService.obtener().subscribe({
+      next: (t) => this.taller.set(t),
+      error: () => this.taller.set(null),
+    });
+  }
 
   navigation: NavItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: 'grid' },

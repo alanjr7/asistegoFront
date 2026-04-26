@@ -1,4 +1,6 @@
 export const environment = {
-  production: true,
-  apiUrl: 'https://asistegoback.onrender.com'
+  production: false,
+  apiUrl: 'http://localhost:8000'
+  // production: true,
+  // apiUrl: 'https://asistegoback.onrender.com'
 };

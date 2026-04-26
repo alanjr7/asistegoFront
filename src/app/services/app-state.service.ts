@@ -3,12 +3,14 @@ import { Solicitud, Notificacion, Calificacion } from '../models/types.model';
 import { MockDataService } from './mock-data.service';
 import { AuthService } from './auth.service';
 import { NotificacionesService } from './notificaciones.service';
+import { SolicitudesService } from './solicitudes.service';
 import { catchError, of } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AppStateService {
   private authService = inject(AuthService);
   private notificacionesService = inject(NotificacionesService);
+  private solicitudesService = inject(SolicitudesService);
   isAuthenticated = signal(false);
   currentView = signal('login');
   solicitudActiva = signal<Solicitud | null>(null);
@@ -18,10 +20,11 @@ export class AppStateService {
   servicioParaCalificar = signal<Solicitud | null>(null);
   loginError = signal<string | null>(null);
   registerError = signal<string | null>(null);
+  solicitudesPendientesCount = signal<number>(0);
 
-  // Computed que usa el servicio de notificaciones
+  // Computed que muestra el conteo de solicitudes pendientes
   notificacionesNoLeidas = computed(() =>
-    this.notificacionesService.noLeidasCount()
+    this.solicitudesPendientesCount()
   );
 
   constructor(private mockData: MockDataService) {
@@ -45,6 +48,14 @@ export class AppStateService {
 
   iniciarNotificaciones() {
     this.notificacionesService.iniciarPolling(30000); // Cada 30 segundos
+    this.cargarSolicitudesPendientes();
+  }
+
+  cargarSolicitudesPendientes() {
+    this.solicitudesService.listar({ pendientes: true }).subscribe({
+      next: (data) => this.solicitudesPendientesCount.set(data.length),
+      error: () => this.solicitudesPendientesCount.set(0)
+    });
   }
 
   detenerNotificaciones() {

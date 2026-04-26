@@ -22,10 +22,15 @@ export class MockDataService {
       timestamp: new Date(), audio: 'mock-audio-url',
       imagenes: ['https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400', 'https://images.unsplash.com/photo-1625047509168-a7026f36de04?w=400'],
       analisisIA: {
-        piezasDetectadas: ['Batería 12V', 'Cables de batería'],
-        danosIdentificados: ['Batería descargada', 'Posibles bornes sulfatados'],
+        transcripcionAudio: 'Mi auto no enciende, hace un sonido de clic cuando giro la llave',
         tipoProblema: 'Sistema eléctrico - Batería',
-        recomendaciones: ['Verificar voltaje de batería', 'Revisar sistema de carga', 'Limpiar bornes'],
+        prioridad: 'alta',
+        danosDetectados: ['Batería descargada', 'Posibles bornes sulfatados'],
+        piezasSugeridas: ['Batería 12V 60Ah', 'Limpiador de bornes', 'Grasa dieléctrica'],
+        costoEstimado: 450,
+        tiempoEstimadoMinutos: 30,
+        resumen: 'Batería descargada que requiere reemplazo inmediato. Posible sulfatación en bornes.',
+        confianza: 92,
       },
       tipo: 'grua',
     },
@@ -35,7 +40,17 @@ export class MockDataService {
       descripcion: 'Ruido extrano al frenar',
       distancia: 1.8, estado: 'pendiente', problema: 'Frenos', requiereRepuestos: false,
       timestamp: new Date(),
-      analisisIA: { tipoProblema: 'Sistema de frenos', recomendaciones: ['Inspeccionar pastillas de freno', 'Verificar discos'] },
+      analisisIA: {
+        transcripcionAudio: 'Hay un ruido chirriante cuando freno',
+        tipoProblema: 'Sistema de frenos',
+        prioridad: 'media',
+        danosDetectados: ['Pastillas de freno desgastadas'],
+        piezasSugeridas: ['Pastillas de freno delanteras', 'Líquido de frenos'],
+        costoEstimado: 280,
+        tiempoEstimadoMinutos: 45,
+        resumen: 'Desgaste normal de pastillas de freno. Recomendado cambio preventivo.',
+        confianza: 85,
+      },
     },
     {
       id: '3', cliente: this.clientes[2],
@@ -66,11 +81,7 @@ export class MockDataService {
     { id: 's3', solicitudId: '102', cliente: this.clientes[1], vehiculo: this.solicitudes[1].vehiculo, problema: 'Cambio de pastillas de freno', solucion: 'Instalación de pastillas de freno Brembo delanteras', monto: 380, fecha: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), duracion: 60 },
   ];
 
-  notificaciones: Notificacion[] = [
-    { id: 'n1', tipo: 'solicitud', titulo: 'Nueva solicitud de emergencia', mensaje: 'Carlos Mendoza necesita asistencia a 2.3 km', timestamp: new Date(), leida: false },
-    { id: 'n2', tipo: 'repuesto', titulo: 'Solicitud de repuesto', mensaje: 'María González solicita Pastillas de Freno Delanteras', timestamp: new Date(Date.now() - 15 * 60 * 1000), leida: false },
-    { id: 'n3', tipo: 'mensaje', titulo: 'Nuevo mensaje', mensaje: 'Jorge Ramírez envió un mensaje', timestamp: new Date(Date.now() - 30 * 60 * 1000), leida: true },
-  ];
+  notificaciones: Notificacion[] = [];
 
   personal: Personal[] = [
     { id: 'p1', nombre: 'José Martínez', rol: 'mecanico', estado: 'disponible', foto: 'https://i.pravatar.cc/150?img=13', telefono: '+591 7111 2222', asistenciasDia: 3, asistenciasMes: 45 },
@@ -90,9 +101,11 @@ export class MockDataService {
   taller: Taller = {
     id: 't1', nombre: 'Taller AsisteGO',
     foto: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400',
-    ubicacion: 'Av. Cristo Redentor, Santa Cruz, Bolivia',
+    direccion: 'Av. Cristo Redentor, Santa Cruz, Bolivia',
     telefono: '+591 3 123 4567', email: 'contacto@asistego.com',
     calificacion: 4.8, totalServicios: 1247,
     descripcion: 'Taller mecánico especializado en asistencia móvil 24/7. Servicio profesional y de calidad.',
+    lat: -17.7833,
+    lng: -63.1821,
   };
 }
