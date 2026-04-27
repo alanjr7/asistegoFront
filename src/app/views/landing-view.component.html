@@ -1,6 +1,8 @@
+<a href="#main-content" class="skip-link">Saltar al contenido principal</a>
+
 <div class="landing-container">
   <!-- Header -->
-  <header class="landing-header">
+  <header class="landing-header" role="banner">
     <div class="header-content">
       <div class="logo">
         <div class="logo-icon">
@@ -12,17 +14,29 @@
         </div>
         <span class="logo-text">AsisteGO</span>
       </div>
-      <nav class="header-nav">
+      <nav class="header-nav" role="navigation" aria-label="Navegación principal">
         <a href="#features" class="nav-link">Características</a>
         <a href="#about" class="nav-link">Sobre Nosotros</a>
         <a href="#contact" class="nav-link">Contacto</a>
         <button class="btn-login" (click)="irALogin()">Iniciar Sesión</button>
       </nav>
+      <button class="mobile-menu-toggle" (click)="toggleMobileMenu()" [attr.aria-expanded]="mobileMenuOpen" aria-label="Abrir menú" [class.active]="mobileMenuOpen">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
+      <nav class="mobile-nav" [class.open]="mobileMenuOpen" role="navigation" aria-label="Navegación móvil">
+        <a href="#features" class="mobile-nav-link" (click)="closeMobileMenu()">Características</a>
+        <a href="#about" class="mobile-nav-link" (click)="closeMobileMenu()">Sobre Nosotros</a>
+        <a href="#contact" class="mobile-nav-link" (click)="closeMobileMenu()">Contacto</a>
+        <button class="btn-login mobile-btn-login" (click)="irALogin(); closeMobileMenu()">Iniciar Sesión</button>
+      </nav>
     </div>
   </header>
 
   <!-- Hero Section -->
-  <section class="hero-section">
+  <main id="main-content">
+  <section class="hero-section scroll-reveal">
     <div class="hero-content">
       <h1 class="hero-title">
         Asistencia Mecánica
@@ -33,9 +47,9 @@
         Soluciones rápidas, profesionales y transparentes para tus emergencias vehiculares.
       </p>
       <div class="hero-actions">
-        <button class="btn-primary" (click)="irALogin()">
+        <button class="btn-primary" (click)="irALogin()" aria-label="Acceder al sistema de AsisteGO">
           <span>Acceder al Sistema</span>
-          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M5 12h14M12 5l7 7-7 7"></path>
           </svg>
         </button>
@@ -94,7 +108,7 @@
   </section>
 
   <!-- Features Section -->
-  <section id="features" class="features-section">
+  <section id="features" class="features-section scroll-reveal">
     <div class="section-container">
       <h2 class="section-title">Características Principales</h2>
       <p class="section-subtitle">Todo lo que necesitas para gestionar emergencias vehiculares</p>
@@ -168,7 +182,7 @@
   </section>
 
   <!-- About Section -->
-  <section id="about" class="about-section">
+  <section id="about" class="about-section scroll-reveal">
     <div class="section-container">
       <div class="about-grid">
         <div class="about-content">
@@ -184,15 +198,28 @@
           </p>
           <div class="about-values">
             <div class="value-item">
-              <span class="value-icon">⚡</span>
+              <span class="value-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+              </span>
               <span class="value-text">Rapidez</span>
             </div>
             <div class="value-item">
-              <span class="value-icon">🔒</span>
+              <span class="value-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+              </span>
               <span class="value-text">Confianza</span>
             </div>
             <div class="value-item">
-              <span class="value-icon">💡</span>
+              <span class="value-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+              </span>
               <span class="value-text">Innovación</span>
             </div>
           </div>
@@ -227,7 +254,7 @@
   </section>
 
   <!-- CTA Section -->
-  <section class="cta-section">
+  <section class="cta-section scroll-reveal">
     <div class="section-container">
       <div class="cta-content">
         <h2 class="cta-title">¿Listo para comenzar?</h2>
@@ -235,9 +262,9 @@
           Accede al sistema de administración para gestionar talleres, ver estadísticas
           y controlar todos los aspectos de la plataforma.
         </p>
-        <button class="btn-cta" (click)="irALogin()">
+        <button class="btn-cta" (click)="irALogin()" aria-label="Iniciar sesión en AsisteGO">
           <span>Iniciar Sesión</span>
-          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"></path>
           </svg>
         </button>
@@ -245,8 +272,10 @@
     </div>
   </section>
 
+  </main>
+
   <!-- Footer -->
-  <footer id="contact" class="landing-footer">
+  <footer id="contact" class="landing-footer" role="contentinfo">
     <div class="footer-content">
       <div class="footer-brand">
         <div class="logo">

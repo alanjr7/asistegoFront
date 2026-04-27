@@ -58,14 +58,6 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
     return this.solicitudes().filter(s => s.estado === 'pendiente' && s.distancia <= this.distanciaMaxima());
   }
 
-  get solicitudEnCurso() {
-    return this.solicitudes()[0] || this.mockData.solicitudes[0];
-  }
-
-  get personalPrimero() {
-    return this.personal()[0] || this.mockData.personal[0];
-  }
-
   private refreshInterval: any;
   private solicitudesInterval: any;
 

@@ -1,4 +1,4 @@
-<div class="w-64 bg-white border-r border-gray-200 flex flex-col h-screen flex-shrink-0">
+<div [class]="state.sidebarVisible() ? 'w-64 bg-white border-r border-gray-200 flex flex-col h-screen flex-shrink-0 transition-all duration-300 ease-in-out fixed lg:relative z-[100]' : 'w-0 bg-white border-r border-gray-200 flex flex-col h-screen flex-shrink-0 transition-all duration-300 ease-in-out overflow-hidden fixed lg:relative z-[100]'">
   <!-- Logo -->
   <div class="p-6 border-b border-gray-200 flex items-center gap-3">
     <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-green-500 flex items-center justify-center flex-shrink-0">

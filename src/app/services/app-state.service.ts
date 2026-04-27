@@ -34,6 +34,7 @@ export class AppStateService {
   loginError = signal<string | null>(null);
   registerError = signal<string | null>(null);
   solicitudesPendientesCount = signal<number>(0);
+  sidebarVisible = signal(true);
 
   // Computed que muestra el conteo de solicitudes pendientes
   notificacionesNoLeidas = computed(() =>
@@ -122,7 +123,14 @@ export class AppStateService {
       this.authService.login({ email, password, rememberMe })
         .pipe(
           catchError(err => {
-            const errorMessage = err.error?.detail || 'Error de conexión';
+            let errorMessage = 'Error al iniciar sesión';
+            if (err.status === 429) {
+              errorMessage = 'Demasiados intentos. Por favor, espere un momento antes de intentar de nuevo.';
+            } else if (err.error?.detail) {
+              errorMessage = typeof err.error.detail === 'string' 
+                ? err.error.detail 
+                : (err.error.detail.message || 'Error del servidor');
+            }
             this.loginError.set(errorMessage);
             throw new Error(errorMessage);
           })
@@ -146,33 +154,40 @@ export class AppStateService {
     });
   }
 
-  register(nombre: string, email: string, password: string) {
+  register(nombre: string, email: string, password: string): Promise<void> {
     this.registerError.set(null);
     
-    this.authService.register({ nombre, email, password })
-      .pipe(
-        catchError(err => {
-          this.registerError.set(err.error?.detail || 'Error al registrar usuario');
-          return of({ success: false, message: 'Error' });
-        })
-      )
-      .subscribe(response => {
-        if (response.success) {
-          const token = localStorage.getItem('token');
-          if (token) {
-            this.decodeAndSetUserFromToken(token);
-          }
-          this.isAuthenticated.set(true);
-          // Redirigir según rol
-          if (this.isAdmin()) {
-            this.currentView.set('admin-dashboard');
-          } else {
-            this.currentView.set('dashboard');
-          }
-          // Iniciar polling de notificaciones
-          this.iniciarNotificaciones();
+    return firstValueFrom(
+      this.authService.register({ nombre, email, password })
+        .pipe(
+          catchError(err => {
+            let errorMessage = 'Error al registrar usuario';
+            if (err.error?.detail) {
+              errorMessage = typeof err.error.detail === 'string' 
+                ? err.error.detail 
+                : (err.error.detail.message || 'Error del servidor');
+            }
+            this.registerError.set(errorMessage);
+            throw new Error(errorMessage);
+          })
+        )
+    ).then(response => {
+      if (response.success) {
+        const token = localStorage.getItem('token');
+        if (token) {
+          this.decodeAndSetUserFromToken(token);
         }
-      });
+        this.isAuthenticated.set(true);
+        // Redirigir según rol
+        if (this.isAdmin()) {
+          this.currentView.set('admin-dashboard');
+        } else {
+          this.currentView.set('dashboard');
+        }
+        // Iniciar polling de notificaciones
+        this.iniciarNotificaciones();
+      }
+    });
   }
 
   logout() {
@@ -188,6 +203,8 @@ export class AppStateService {
   }
 
   navigateTo(view: string) { this.currentView.set(view); }
+
+  toggleSidebar() { this.sidebarVisible.update(v => !v); }
 
   seleccionarSolicitudPendiente(solicitud: Solicitud) {
     this.solicitudPendienteSeleccionada.set(solicitud);

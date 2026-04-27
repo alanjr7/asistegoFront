@@ -13,20 +13,6 @@
 
   <!-- Mapa principal -->
   <div class="map-section" [class.expanded]="mapaExpandido()">
-    <!-- Solicitud en curso -->
-    <div class="solicitud-en-curso card">
-      <div class="sec-left">
-        <div class="pulse-dot"></div>
-        <span class="text-sm text-gray-700">Solicitud en curso:</span>
-        <span class="font-medium text-gray-900">{{ solicitudEnCurso.cliente.nombre }}</span>
-      </div>
-      <div class="sec-right">
-        <span class="text-sm text-gray-600">Mecánico asignado:</span>
-        <img [src]="personalPrimero.foto" [alt]="personalPrimero.nombre" class="avatar-sm" />
-        <span class="text-sm text-gray-900">{{ personalPrimero.nombre }}</span>
-      </div>
-    </div>
-
     <!-- Stats -->
     <div class="stats-grid">
       <div class="card p-4">

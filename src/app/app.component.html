@@ -11,7 +11,10 @@
 <app-admin-dashboard-view *ngIf="state.isAuthenticated() && state.currentView() === 'admin-dashboard'"></app-admin-dashboard-view>
 
 <!-- App principal (talleres) -->
-<div *ngIf="state.isAuthenticated() && state.currentView() !== 'admin-dashboard'" class="h-screen flex bg-gray-50 overflow-hidden">
+<div *ngIf="state.isAuthenticated() && state.currentView() !== 'admin-dashboard'" class="h-screen flex bg-gray-50 overflow-hidden relative">
+  <!-- Overlay para móvil -->
+  <div *ngIf="state.sidebarVisible()" class="fixed inset-0 bg-black/50 z-40 lg:hidden" (click)="state.toggleSidebar()"></div>
+
   <!-- Sidebar -->
   <app-sidebar></app-sidebar>
 

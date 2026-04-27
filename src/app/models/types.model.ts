@@ -48,6 +48,8 @@ export interface Solicitud {
   tipo?: 'normal' | 'grua';
   mecanicoAsignado?: Personal;
   personalAsignado?: PersonalAsignado[];  // Nuevo campo para múltiples técnicos
+  lat?: number;
+  lng?: number;
 }
 
 export interface Repuesto {

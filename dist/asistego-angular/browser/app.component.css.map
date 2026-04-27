@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/app.component.css"],
+  "sourcesContent": [".app-shell {\r\n  height: 100vh;\r\n  display: flex;\r\n  background: #f9fafb;\r\n  overflow: hidden;\r\n}\r\n\r\n.main-area {\r\n  flex: 1;\r\n  display: flex;\r\n  flex-direction: column;\r\n  overflow: hidden;\r\n  min-width: 0;\r\n}\r\n\r\n.content-area {\r\n  flex: 1;\r\n  overflow: auto;\r\n  display: flex;\r\n  flex-direction: column;\r\n}\r\n"],
+  "mappings": ";AAAA,CAAC;AACC,UAAQ;AACR,WAAS;AACT,cAAY;AACZ,YAAU;AACZ;AAEA,CAAC;AACC,QAAM;AACN,WAAS;AACT,kBAAgB;AAChB,YAAU;AACV,aAAW;AACb;AAEA,CAAC;AACC,QAAM;AACN,YAAU;AACV,WAAS;AACT,kBAAgB;AAClB;",
+  "names": []
+}

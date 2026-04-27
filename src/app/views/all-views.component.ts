@@ -736,6 +736,8 @@ export class SeguimientoViewComponent implements OnInit, OnDestroy {
   solicitudesService = inject(SolicitudesService);
   evidenciasService = inject(EvidenciasService);
   personalService = inject(PersonalService);
+  tallerService = inject(TallerService);
+  tallerInfo = signal<Taller | null>(null);
   estadoActual = signal('en_camino');
   loading = signal(false);
   error = signal<string | null>(null);
@@ -777,6 +779,8 @@ export class SeguimientoViewComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.cargarSolicitudesActivas();
     // Si hay una solicitud seleccionada o pendiente, inicializar mapa
+    this.tallerService.obtener().subscribe(t => this.tallerInfo.set(t));
+    
     setTimeout(() => {
       if (this.state.solicitudPendienteSeleccionada()) {
         this.initMapPendiente();
@@ -823,12 +827,43 @@ export class SeguimientoViewComponent implements OnInit, OnDestroy {
     const L = (window as any).L;
     const s = this.solicitudSeleccionada();
     if (!s) return;
+    const taller = this.tallerInfo();
     const container = document.getElementById('seg-map');
     if (!container) return;
-    this.map = L.map('seg-map').setView([s.cliente.lat, s.cliente.lng], 14);
+
+    const lat = s.lat || s.cliente.lat;
+    const lng = s.lng || s.cliente.lng;
+    
+    // Si tenemos ubicación del taller, centrar para ver ambos
+    if (taller && taller.lat && taller.lng) {
+      const bounds = L.latLngBounds([[lat, lng], [taller.lat, taller.lng]]);
+      this.map = L.map('seg-map').fitBounds(bounds, { padding: [50, 50] });
+      
+      // Marker Taller
+      const tallerIcon = L.divIcon({ 
+        html: `<div style="width:32px;height:32px;background:#ef4444;border-radius:8px;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:white;"><i class="fas fa-store"></i></div>`, 
+        className:'', iconSize:[32,32], iconAnchor:[16,16] 
+      });
+      L.marker([taller.lat, taller.lng], { icon: tallerIcon }).addTo(this.map).bindPopup('Tu Taller: ' + taller.nombre);
+      
+      // Línea de ruta (simple polilínea punteada)
+      L.polyline([[taller.lat, taller.lng], [lat, lng]], {
+        color: '#2563eb',
+        weight: 3,
+        opacity: 0.6,
+        dashArray: '10, 10'
+      }).addTo(this.map);
+    } else {
+      this.map = L.map('seg-map').setView([lat, lng], 14);
+    }
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(this.map);
-    const icon = (window as any).L.divIcon({ html: `<div style="width:32px;height:32px;background:#2563eb;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3)"></div>`, className:'', iconSize:[32,32], iconAnchor:[16,16] });
-    L.marker([s.cliente.lat, s.cliente.lng], { icon }).addTo(this.map).bindPopup(s.cliente.nombre);
+    
+    const icon = (window as any).L.divIcon({ 
+      html: `<div style="width:32px;height:32px;background:#2563eb;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3)"></div>`, 
+      className:'', iconSize:[32,32], iconAnchor:[16,16] 
+    });
+    L.marker([lat, lng], { icon }).addTo(this.map).bindPopup('Cliente: ' + s.cliente.nombre);
   }
 
   initMapPendiente() {
@@ -838,10 +873,12 @@ export class SeguimientoViewComponent implements OnInit, OnDestroy {
     if (!s) return;
     const container = document.getElementById('seg-map-pendiente');
     if (!container) return;
-    this.map = L.map('seg-map-pendiente').setView([s.cliente.lat, s.cliente.lng], 14);
+    const lat = s.lat || s.cliente.lat;
+    const lng = s.lng || s.cliente.lng;
+    this.map = L.map('seg-map-pendiente').setView([lat, lng], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(this.map);
     const icon = L.divIcon({ html: `<div style="width:36px;height:36px;background:linear-gradient(135deg,#2563eb,#22c55e);border-radius:50%;border:3px solid white;box-shadow:0 2px 12px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;">${s.cliente.nombre[0]}</div>`, className:'', iconSize:[36,36], iconAnchor:[18,18] });
-    L.marker([s.cliente.lat, s.cliente.lng], { icon }).addTo(this.map).bindPopup(s.cliente.nombre);
+    L.marker([lat, lng], { icon }).addTo(this.map).bindPopup(s.cliente.nombre);
   }
 
   volverAlDashboard() {
@@ -979,11 +1016,20 @@ export class SeguimientoViewComponent implements OnInit, OnDestroy {
           this.estadoActual.set(id);
           // Actualizar la solicitud seleccionada con nuevo estado
           this.solicitudSeleccionada.update(s => s ? { ...s, estado: id as any } : null);
+          
+          // Refrescar mapa
+          const updated = this.solicitudSeleccionada();
+          if (updated) this.seleccionarSolicitud(updated);
+
           // Recargar lista
           this.cargarSolicitudesActivas();
           this.loading.set(false);
           if (id === 'finalizada') {
-            // Opcional: mostrar mensaje de éxito
+            // Establecer como solicitud activa para facturación y navegar a pagos
+            if (updated) {
+              this.state.solicitudActiva.set(updated);
+              this.state.navigateTo('pagos');
+            }
           }
         },
         error: (err) => {
@@ -1291,6 +1337,9 @@ export class PagosViewComponent implements OnInit {
 
   ngOnInit() {
     this.cargarDatos();
+    if (this.state.solicitudActiva()) {
+      this.tab.set('confirmar');
+    }
   }
 
   async cargarDatos() {

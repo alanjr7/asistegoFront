@@ -44,7 +44,6 @@ export class SidebarComponent implements OnInit {
     { id: 'repuestos', label: 'Repuestos', icon: 'package' },
     { id: 'clientes', label: 'Clientes', icon: 'users' },
     { id: 'historial', label: 'Historial', icon: 'history' },
-    { id: 'chat', label: 'Mensajes', icon: 'message-square' },
     { id: 'notificaciones', label: 'Notificaciones', icon: 'bell' },
   ];
 

@@ -78,7 +78,7 @@
                 </span>
               </div>
               <div class="estado-bar-container">
-                <div class="estado-bar"
+                <div [class]="'estado-bar estado-' + estado"
                      [style.width.%]="(solicitudesPorEstado[estado] / solicitudesCount * 100) || 0">
                 </div>
               </div>

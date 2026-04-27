@@ -16,6 +16,7 @@ export class LoginViewComponent {
   rememberMe = false;
   loading = false;
   error: string | null = null;
+  isLocked = false;
 
   async handleSubmit() {
     if (this.email && this.password) {
@@ -25,6 +26,9 @@ export class LoginViewComponent {
         await this.state.login(this.email, this.password, this.rememberMe);
       } catch (e: any) {
         this.error = e.message || 'Error al iniciar sesión';
+        // Si el mensaje contiene "suspendida" o "esperar", lo tratamos como bloqueo visual
+        this.isLocked = this.error.toLowerCase().includes('suspendida') || 
+                        this.error.toLowerCase().includes('intentos');
       } finally {
         this.loading = false;
       }
